@@ -1,0 +1,55 @@
+{
+    "name": "spatie/laravel-webhook-server",
+    "description": "Send webhooks in Laravel apps",
+    "keywords": [
+        "spatie",
+        "laravel-webhook-server"
+    ],
+    "homepage": "https://github.com/spatie/laravel-webhook-server",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Freek Van der Herten",
+            "email": "freek@spatie.be",
+            "homepage": "https://spatie.be",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^7.3",
+        "ext-json": "*",
+        "guzzlehttp/guzzle": "^6.3",
+        "illuminate/bus": "^5.8",
+        "illuminate/queue": "^5.8",
+        "illuminate/support": "^5.8"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^3.8",
+        "phpunit/phpunit": "^8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Spatie\\WebhookServer\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Spatie\\WebhookServer\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Spatie\\WebhookServer\\WebhookServerServiceProvider"
+            ]
+        }
+    }
+}
