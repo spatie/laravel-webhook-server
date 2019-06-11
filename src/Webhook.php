@@ -2,7 +2,11 @@
 
 namespace Spatie\WebhookServer;
 
+use Spatie\WebhookServer\BackoffStrategy\BackoffStrategy;
 use Spatie\WebhookServer\Exceptions\CouldNotCallWebhook;
+use Spatie\WebhookServer\Exceptions\InvalidBackoffStrategy;
+use Spatie\WebhookServer\Exceptions\InvalidSigner;
+use Spatie\WebhookServer\Signer\Signer;
 
 class Webhook
 {
@@ -87,6 +91,10 @@ class Webhook
 
     public function useBackoffStrategy(string $backoffStrategyClass)
     {
+        if (! is_subclass_of($backoffStrategyClass, BackoffStrategy::class)) {
+            throw InvalidBackoffStrategy::doesNotExtendBackoffStrategy($backoffStrategyClass);
+        }
+
         $this->callWebhookJob->backoffStrategyClass = $backoffStrategyClass;
 
         return $this;
@@ -101,9 +109,11 @@ class Webhook
 
     public function signUsing(string $signerClass)
     {
-        $this->signer = app($signerClass);
+        if (! is_subclass_of($signerClass, Signer::class)) {
+            throw InvalidSigner::doesImplementSigner($signerClass);
+        }
 
-        //TODO: verify is instance of Signer
+        $this->signer = app($signerClass);
 
         return $this;
     }
