@@ -6,9 +6,9 @@ use GuzzleHttp\Client;
 use Spatie\WebhookServer\Tests\TestClasses\TestClient;
 use Spatie\WebhookServer\Webhook;
 
-class CallWebhookJobTest
+class CallWebhookJobTest extends TestCase
 {
-    public function bla(): void
+    public function setUp(): void
     {
         parent::setUp();
 
@@ -22,11 +22,9 @@ class CallWebhookJobTest
     /** @test */
     public function it_tests()
     {
-        dd('in test');
-
         Webhook::create()
             ->url('https://example.com/webhooks')
-            ->signUsing('abc')
+            ->useSecret('abc')
             ->payload(['a' => 1])
             ->call();
     }

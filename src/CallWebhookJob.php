@@ -50,23 +50,17 @@ class CallWebhookJob implements ShouldQueue
     /** @var array */
     public $meta;
 
-    /** @var \GuzzleHttp\Client */
-    private $client;
-
     /** @var \GuzzleHttp\Psr7\Response|null */
     private $response;
-
-    public function __construct(Client $client)
-    {
-        $this->client = $client;
-    }
 
     public function handle()
     {
         $httpVerb = $this->httpVerb;
 
+        $client = app(Client::class);
+
         try {
-            $this->response = $this->client->$httpVerb($this->webhookUrl, [
+            $this->response = $client->$httpVerb($this->webhookUrl, [
                 'timeout' => $this->timeout,
                 'body' => json_encode($this->payload),
                 'verify' => $this->verifySsl,
@@ -80,7 +74,7 @@ class CallWebhookJob implements ShouldQueue
             /** @var \Spatie\WebhookServer\BackoffStrategy\BackoffStrategy $backoffStrategry */
             $backoffStrategy = app($this->backoffStrategyClass);
 
-            $waitInSeconds = $backoffStrategy->waitInSecondsAfterAttempt($this->attempt);
+            $waitInSeconds = $backoffStrategy->waitInSecondsAfterAttempt($this->attempts());
 
             $this->dispatchEvent(WebhookCallFailedEvent::class);
             $this->release($waitInSeconds);

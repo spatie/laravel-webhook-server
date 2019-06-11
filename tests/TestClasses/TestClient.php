@@ -2,8 +2,6 @@
 
 namespace Spatie\WebhookServer\Tests\TestClasses;
 
-use Tests\Unit\Services\Webhooks\TestResponse;
-
 class TestClient
 {
     public $requests = [];
