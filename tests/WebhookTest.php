@@ -36,6 +36,8 @@ class WebhookTest extends TestCase
             $this->assertEquals($config['backoff_strategy'], $job->backoffStrategyClass);
             $this->assertEquals([$config['signature_header_name']], array_keys($job->headers));
             $this->assertEquals($config['verify_ssl'], $job->verifySsl);
+            $this->assertEquals($config['tags'], $job->tags);
+
 
             return true;
         });
@@ -55,7 +57,6 @@ class WebhookTest extends TestCase
         $this->expectException(CouldNotCallWebhook::class);
 
         Webhook::create()->url('https://localhost')->call();
-
     }
 
     /** @test */

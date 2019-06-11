@@ -50,4 +50,10 @@ return [
      * of the webhook is valid.
      */
     'verify_ssl' => true,
+
+    /*
+     * When using Laravel Horizon you can specify tags that should be used on the
+     * underlying job that performs the webhook request.
+     */
+    'tags' => [],
 ];

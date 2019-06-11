@@ -37,6 +37,7 @@ class Webhook
             ->timeoutInSeconds($config['timeout_in_seconds'])
             ->signUsing($config['signer'])
             ->withHeaders($config['headers'])
+            ->withTags($config['tags'])
             ->verifySsl($config['verify_ssl']);
     }
 
@@ -142,6 +143,13 @@ class Webhook
     public function meta(array $meta)
     {
         $this->callWebhookJob->meta = $meta;
+
+        return $this;
+    }
+
+    public function withTags(array $tags)
+    {
+        $this->callWebhookJob->tags = $tags;
 
         return $this;
     }

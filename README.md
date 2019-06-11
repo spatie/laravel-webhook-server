@@ -231,12 +231,46 @@ Webhook::create()
     ->call();
 ```
 
+### Adding meta information
+
+You can add extra meta information to the webhook. This meta information will not be transmitted, it will only be used to pass to [the events this package fires](#events).
+
+This is how you can add meta information:
+
+```php
+Webhook::create()
+    ->meta($arrayWithMetaInformation)
+    ...
+    ->call();
+```
+
+### Adding tags
+
+If you're using [Laravel Horizon](https://laravel.com/docs/5.8/horizon) for your queues you'll be happy to know that we support [tags](https://laravel.com/docs/5.8/horizon#tags). 
+
+To add tags to the underlying job that'll perform the webhook call, simply specify them in the `tags` key of the `webhook-server` config file or use the `withTags` method:
+
+```php
+Webhook::create()
+    ->withTags($tags)
+    ...
+    ->call();
+```
+
 ### Events
 
 The package fires these events:
 - `WebhookCallSucceededEvent`: the remote app responded with a `2xx` response code.
 - `WebhookCallFailedEvent`: the remote app responded with a non `2xx` response code or it did not respond at all
 - `FinalWebhookCalledFailedEvent`: the final attempt to call the webhook failed.
+
+All these events have these properties:
+
+- `httpVerb`: the verb used to perform the request
+- `webhookUrl`: the url to where the request was sent
+- `payload`: the used payload
+- `headers`: the headers that were sent. This array includes the signature header.
+- `meta`: 
 
 ## Testing
 
