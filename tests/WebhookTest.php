@@ -32,7 +32,7 @@ class WebhookTest extends TestCase
             $this->assertEquals($url, $job->webhookUrl);
             $this->assertEquals($config['http_verb'], $job->httpVerb);
             $this->assertEquals($config['tries'], $job->tries);
-            $this->assertEquals($config['timeout_in_seconds'], $job->timeout);
+            $this->assertEquals($config['timeout_in_seconds'], $job->requestTimeout);
             $this->assertEquals($config['backoff_strategy'], $job->backoffStrategyClass);
             $this->assertEquals([$config['signature_header_name']], array_keys($job->headers));
             $this->assertEquals($config['verify_ssl'], $job->verifySsl);

@@ -28,7 +28,7 @@ class CallWebhookJob implements ShouldQueue
     public $tries;
 
     /** @var int */
-    public $timeout;
+    public $requestTimeout;
 
     /** @var string */
     public $backoffStrategyClass;
@@ -61,7 +61,7 @@ class CallWebhookJob implements ShouldQueue
 
         try {
             $this->response = $client->request($this->httpVerb, $this->webhookUrl, [
-                'timeout' => $this->timeout,
+                'timeout' => $this->requestTimeout,
                 'body' => json_encode($this->payload),
                 'verify' => $this->verifySsl,
                 'headers' => $this->headers,
