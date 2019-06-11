@@ -141,7 +141,7 @@ class Webhook
 
     public function call()
     {
-        if (empty($this->url())) {
+        if (empty($this->url)) {
             throw CouldNotCallWebhook::urlNotSet();
         }
 
