@@ -9,7 +9,7 @@
 
 A webhook is a way for an app to provide information to another app about a certain event. The way the two apps communicate is with a simple HTTP request. 
 
-This package allows you to easily configure and send webhooks in a Laravel app. It has support for signing calls, retrying calls and backoff strategies.
+This package allows you to easily configure and send webhooks in a Laravel app. It has support for [signing calls](https://github.com/spatie/laravel-webhook-server#how-signing-requests-works), [retrying calls and backoff strategies](https://github.com/spatie/laravel-webhook-server#retrying-failed-webhooks).
 
 If you need to receive and process webhooks take a look at our [laravel-webhook-client] package.
 
@@ -96,7 +96,7 @@ Webhook::create()
    ->call();
 ```
 
-This will send a post request to `https://other-app.com/webhooks`. The body of the request will be json encoded version of the array passed to `payload`. The request will have a header called `Signature` that will contain a signature the receiving app can use [to verify](TODO: add link) the payload hasn't been tampered with. 
+This will send a post request to `https://other-app.com/webhooks`. The body of the request will be json encoded version of the array passed to `payload`. The request will have a header called `Signature` that will contain a signature the receiving app can use [to verify](https://github.com/spatie/laravel-webhook-server#how-signing-requests-works) the payload hasn't been tampered with. 
 
 If the receiving app doesn't respond with a response code starting with `2`, the package will retry calling the webhook after 10 seconds. If that second attempt fails, the package will attempt to call the webhook a final time after 100 seconds. Should that attempt fail the `FinalWebhookCallFailedEvent` will be raised.
 
@@ -231,7 +231,12 @@ Webhook::create()
     ->call();
 ```
 
+### Events
 
+The package fires these events:
+- `WebhookCallSucceededEvent`: the remote app responded with a `2xx` response code.
+- `WebhookCallFailedEvent`: the remote app responded with a non `2xx` response code or it did not respond at all
+- `FinalWebhookCalledFailedEvent`: the final attempt to call the webhook failed.
 
 ## Testing
 
