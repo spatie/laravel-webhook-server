@@ -269,8 +269,11 @@ All these events have these properties:
 - `httpVerb`: the verb used to perform the request
 - `webhookUrl`: the url to where the request was sent
 - `payload`: the used payload
-- `headers`: the headers that were sent. This array includes the signature header.
-- `meta`: 
+- `headers`: the headers that were sent. This array includes the signature header
+- `meta`: the array of values passed to the webhook with [the `meta` call](#adding-meta-information)
+- `tags`: the array of [tags](#adding-tags) used
+- `attempt`: the attempt number
+- `response`: the response returned by the remote app. Can be an instance of `\GuzzleHttp\Psr7\Response` or `null`.
 
 ## Testing
 
