@@ -92,7 +92,7 @@ class Webhook
 
     public function timeoutInSeconds(int $timeoutInSeconds)
     {
-        $this->callWebhookJob->timeout;
+        $this->callWebhookJob->timeout = $timeoutInSeconds;
 
         return $this;
     }
