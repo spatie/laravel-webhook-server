@@ -10,13 +10,13 @@ class WebhookServerServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__.'/../config/config.php' => config_path('webhook-server.php'),
+                __DIR__.'/../config/webhook-server.php' => config_path('webhook-server.php'),
             ], 'config');
         }
     }
 
     public function register()
     {
-        $this->mergeConfigFrom(__DIR__.'/../config/config.php', 'webhook-server');
+        $this->mergeConfigFrom(__DIR__.'/../config/webhook-server.php', 'webhook-server');
     }
 }

@@ -25,7 +25,7 @@ class Webhook
     /** @var array */
     private $payload = [];
 
-    public static function create()
+    public static function create(): self
     {
         $config = config('webhook-server');
 
@@ -36,7 +36,7 @@ class Webhook
             ->useBackoffStrategy($config['backoff_strategy'])
             ->timeoutInSeconds($config['timeout_in_seconds'])
             ->signUsing($config['signer'])
-            ->withHeaders($config['header'])
+            ->withHeaders($config['headers'])
             ->verifySsl($config['verify_ssl']);
     }
 

@@ -2,13 +2,34 @@
 
 namespace Spatie\WebhookServer\Tests;
 
-use PHPUnit\Framework\TestCase;
+use Illuminate\Support\Facades\Queue;
+use Spatie\WebhookServer\Exceptions\InvalidBackoffStrategy;
+use Spatie\WebhookServer\Exceptions\InvalidSigner;
+use Spatie\WebhookServer\Webhook;
+use stdClass;
 
 class WebhookTest extends TestCase
 {
-    /** @test */
-    public function true_is_true()
+    public function setUp(): void
     {
-        $this->assertTrue(true);
+        parent::setUp();
+
+        Queue::fake();
+    }
+
+    /** @test */
+    public function it_will_throw_an_exception_when_using_an_invalid_backoff_strategy()
+    {
+        $this->expectException(InvalidBackoffStrategy::class);
+
+        Webhook::create()->useBackoffStrategy(static::class);
+    }
+
+    /** @test */
+    public function it_will_throw_and_exception_when_using_an_invalid_signer()
+    {
+        $this->expectException(InvalidSigner::class);
+
+        Webhook::create()->signUsing(static::class);
     }
 }
