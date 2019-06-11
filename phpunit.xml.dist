@@ -14,6 +14,9 @@
             <directory>tests</directory>
         </testsuite>
     </testsuites>
+    <php>
+        <env name="QUEUE_DRIVER" value="9000"/>
+    </php>
     <filter>
         <whitelist>
             <directory suffix=".php">src/</directory>
