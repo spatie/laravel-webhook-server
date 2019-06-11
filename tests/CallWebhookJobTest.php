@@ -4,6 +4,8 @@ namespace Spatie\WebhookServer\Tests;
 
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Event;
+use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
+use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
 use Spatie\WebhookServer\Tests\TestClasses\TestClient;
 use Spatie\WebhookServer\Webhook;
 
@@ -30,6 +32,8 @@ class CallWebhookJobTest extends TestCase
     {
         $this->baseWebhook()->call();
 
+        $this->artisan('queue:work --once');
+
         $this
             ->testClient
             ->assertRequestsMade([$this->baseRequest()]);
@@ -44,6 +48,9 @@ class CallWebhookJobTest extends TestCase
             ->call();
 
         $baseResponse = $this->baseRequest(['method' => 'get']);
+
+        $this->artisan('queue:work --once');
+
 
         $this
             ->testClient
@@ -69,6 +76,8 @@ class CallWebhookJobTest extends TestCase
             $extraHeaders,
         );
 
+        $this->artisan('queue:work --once');
+
         $this
             ->testClient
             ->assertRequestsMade([$baseRequest]);
@@ -82,18 +91,37 @@ class CallWebhookJobTest extends TestCase
         $baseRequest = $this->baseRequest();
         $baseRequest['options']['verify'] = false;
 
+        $this->artisan('queue:work --once');
+
         $this
             ->testClient
             ->assertRequestsMade([$baseRequest]);
     }
 
     /** @test */
-    public function it_will_try_the_amount_of_times()
+    public function by_default_it_will_retry_3_times_with_the_exponential_backoff_strategy()
     {
         $this->testClient->letEveryRequestFail();
 
         $this->baseWebhook()->call();
 
+        $this->artisan('queue:work --once');
+        Event::assertDispatched(WebhookCallFailedEvent::class, 1);
+
+        $this->progressSeconds(10);
+        $this->artisan('queue:work --once');
+        Event::assertDispatched(WebhookCallFailedEvent::class, 2);
+
+        $this->progressSeconds(100);
+        $this->artisan('queue:work --once');
+        Event::assertDispatched(WebhookCallFailedEvent::class, 3);
+        Event::assertDispatched(FinalWebhookCallFailedEvent::class, 1);
+        $this->testClient->assertRequestCount(3);
+
+        $this->progressSeconds(1000);
+        $this->artisan('queue:work --once');
+        Event::assertDispatched(WebhookCallFailedEvent::class, 3);
+        Event::assertDispatched(FinalWebhookCallFailedEvent::class, 1);
         $this->testClient->assertRequestCount(3);
     }
 

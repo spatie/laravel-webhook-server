@@ -2,6 +2,7 @@
 
 namespace Spatie\WebhookServer\Tests;
 
+use Carbon\Carbon;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Orchestra\Testbench\TestCase as Orchestra;
@@ -25,7 +26,6 @@ class TestCase extends Orchestra
 
     protected function getEnvironmentSetUp($app)
     {
-        // Setup default database to use sqlite :memory:
         $app['config']->set('database.default', 'testbench');
         $app['config']->set('database.connections.testbench', [
             'driver'   => 'sqlite',
@@ -46,5 +46,18 @@ class TestCase extends Orchestra
             $table->unsignedInteger('created_at');
         });
     }
-}
 
+    protected function setNow(string $time, $format = 'Y-m-d H:i:s')
+    {
+        $now = Carbon::createFromFormat($format, $time);
+
+        Carbon::setTestNow($now);
+    }
+
+    public function progressSeconds(int $seconds)
+    {
+        $newNow = now()->addSeconds($seconds);
+
+        Carbon::setTestNow($newNow);
+    }
+}

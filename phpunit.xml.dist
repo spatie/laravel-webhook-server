@@ -15,7 +15,7 @@
         </testsuite>
     </testsuites>
     <php>
-        <env name="QUEUE_DRIVER" value="9000"/>
+        <env name="QUEUE_CONNECTION" value="database"/>
     </php>
     <filter>
         <whitelist>
