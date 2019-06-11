@@ -117,15 +117,78 @@ $signature = hash_hmac('sha256', $payloadJson, $secret);
 
 ### Customizing signing requests
 
+If you want to customize the signing process you can create your own custom signer. A signer is any class that implements `Spatie\WebhookServer\Signer`.
 
+This is what that interface looks like.
 
-### Testing
+```php
+namespace Spatie\WebhookServer\Signer;
+
+interface Signer
+{
+    public function signatureHeaderName(): string;
+
+    public function calculateSignature(array $payload, string $secret): string;
+}
+```
+
+After creating your signer you can specify it's class name in the `signer` key of the `webhook-server` config file. Your signer will than be used by default in all webhook calls.
+
+You can also specify a signer for a specific webhook call
+
+```php
+Webhook::create()
+    ->signUsing(YourCustomSigner::class)
+    ...
+    ->call();
+```
+
+### Customizing the http verb
+
+By default all webhooks will use the `post` method. You can customize that by specify the http verb you want in the `http_verb` key of the `webhook-server` config file.
+
+You can also override the default for a specific call by use the `useHttpVerb` method.
+
+```php
+Webhook::create()
+    ->useHttpVerb('get')
+    ...
+    ->call();
+```
+
+### Adding extra headers
+
+You can extra headers by adding the to the `headers` key in the `webhook-server` config file. If you want to add extra headers for a specific webhook you can use the `withHeaders` call.
+
+```php
+Webhook::create()
+    ->withHeaders([
+        'Another Header' => 'Value of Another Header'
+    ])
+    ...
+    ->call();
+```
+
+### Verifying the ssl certificate of the receiving app
+
+When using an url that starts with `https://` the package will verify if the ssl certificate of the receiving party is valid. If it is not, we will consider the webhook call failed. We don't recommend this but you can turn off this verification by setting the `verify_ssl` key in the `webhook-server` config file to `false`.
+
+You can also disable the verification per webhook call with the `doNotVerifySsl` method.
+
+```php
+Webhook::create()
+    ->doNotVerifySsl()
+    ...
+    ->call();
+```
+
+## Testing
 
 ``` bash
 composer test
 ```
 
-### Changelog
+## Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
 
