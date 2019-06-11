@@ -3,7 +3,9 @@
     "description": "Send webhooks in Laravel apps",
     "keywords": [
         "spatie",
-        "laravel-webhook-server"
+        "laravel-webhook-server",
+        "webhook",
+        "server"
     ],
     "homepage": "https://github.com/spatie/laravel-webhook-server",
     "license": "MIT",
