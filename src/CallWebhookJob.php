@@ -51,6 +51,9 @@ class CallWebhookJob implements ShouldQueue
     /** @var array */
     public $meta = [];
 
+    /** @var array */
+    public $tags = [];
+
     /** @var \GuzzleHttp\Psr7\Response|null */
     private $response;
 
@@ -100,11 +103,15 @@ class CallWebhookJob implements ShouldQueue
             $this->payload,
             $this->headers,
             $this->meta,
+            $this->tags,
             $this->attempts(),
             $this->response,
         ));
     }
 
-    // TODO: add support for tags
+    public function tags()
+    {
+        return $this->tags;
+    }
 }
 

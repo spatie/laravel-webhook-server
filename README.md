@@ -21,12 +21,86 @@ You can install the package via composer:
 composer require spatie/laravel-webhook-server
 ```
 
+You can publish the config file with:
+```bash
+php artisan vendor:publish --provider="Spatie\WebhookServer\WebhookServerServiceProvider"
+```
+
+This is the contents of the file that will be published at `config/webhook-server.php`:
+
+```php
+return [
+
+    /*
+     *  The default queue that should be used to send webhook requests.
+     */
+    'queue' => 'default',
+
+    /*
+     * The default http verb to use.
+     */
+    'http_verb' => 'post',
+
+    /*
+     * This class is responsible for calculating the signature that will be added to
+     * the headers of the webhook request. A webhook client can use the signature
+     * to verify the request hasn't been tampered with.
+     */
+    'signer' => \Spatie\WebhookServer\Signer\DefaultSigner::class,
+
+    /*
+     * This is the name of the header where the signature will be added.
+     */
+    'signature_header_name' => 'Signature',
+
+    /*
+     * These are the headers that will be added to all webhook requests.
+     */
+    'headers' => [],
+
+    /*
+     * If a call to a webhook takes longer that this amount of seconds
+     * the attempt will be considered failed.
+     */
+    'timeout_in_seconds' => 3,
+
+    /*
+     * The amount of times the webhook should be called before we give up.
+     */
+    'tries' => 3,
+
+    /*
+     * This class determines how many seconds there should be between attempts.
+     */
+    'backoff_strategy' => \Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy::class,
+
+    /*
+     * By default we will verify that the ssl certificate of the destination
+     * of the webhook is valid.
+     */
+    'verify_ssl' => true,
+];
+```
+
+By default the package uses queues to retry failed webhook requests. Be sure to setup a real queue other that `sync` in non-local environments.
+
 ## Usage
 
-``` php
-$WebhookServer = new Spatie\WebhookServer();
-echo $WebhookServer->echoPhrase('Hello, Spatie!');
+This is the simplest way to call a webhook:
+
+```php
+Webhook::create()
+   ->url('https://other-app.com/webhooks')
+   ->payload(['key' => 'value'])
+   ->signUsingSecret('sign-using-this-secret')
+   ->call();
 ```
+
+This will send a post request to `https://other-app.com/webhooks`. The body of the request will be json encoded version of the array passed to `payload`. The request will have a header called `Signature` that will contain a signature the receiving app can use [to verify](TODO: add link) the payload hasn't been tampered with. 
+
+If the receiving app doesn't respond with a response code starting with `2`, the package will retry calling the webhook after 10 seconds. If that second attempt fails, the package will attempt to call the webhook a final time after 100 seconds. Should that attempt fail the `FinalWebhookCallFailedEvent` will be raised.
+
+
 
 ### Testing
 
