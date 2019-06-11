@@ -6,7 +6,5 @@ class WebhookCallFailedEvent extends WebhookCallEvent
 {
     public function __construct()
     {
-
     }
 }
-

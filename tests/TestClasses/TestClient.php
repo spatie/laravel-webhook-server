@@ -29,8 +29,8 @@ class TestClient
     {
         $this->assertRequestCount(count($expectedRequests));
 
-        foreach($expectedRequests as $index => $expectedRequest) {
-            foreach($expectedRequest as $name => $value) {
+        foreach ($expectedRequests as $index => $expectedRequest) {
+            foreach ($expectedRequest as $name => $value) {
                 Assert::assertEquals($value, $this->requests[$index][$name]);
             }
         }
@@ -41,4 +41,3 @@ class TestClient
         $this->useResponseCode = 500;
     }
 }
-
