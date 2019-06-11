@@ -87,6 +87,16 @@ class CallWebhookJobTest extends TestCase
             ->assertRequestsMade([$baseRequest]);
     }
 
+    /** @test */
+    public function it_will_try_the_amount_of_times()
+    {
+        $this->testClient->letEveryRequestFail();
+
+        $this->baseWebhook()->call();
+
+        $this->testClient->assertRequestCount(3);
+    }
+
     protected function baseWebhook(): Webhook
     {
         return Webhook::create()

@@ -9,11 +9,13 @@ class TestClient
 {
     private $requests = [];
 
+    private $useResponseCode = 200;
+
     public function request(string $method, string $url, array $options)
     {
         $this->requests[] = compact('method', 'url', 'options');
 
-        return new Response(200);
+        return new Response($this->useResponseCode);
     }
 
     public function assertRequestCount(int $expectedCount)
@@ -32,6 +34,11 @@ class TestClient
                 Assert::assertEquals($value, $this->requests[$index][$name]);
             }
         }
+    }
+
+    public function letEveryRequestFail()
+    {
+        $this->useResponseCode = 500;
     }
 }
 
