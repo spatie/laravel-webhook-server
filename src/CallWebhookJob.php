@@ -77,7 +77,6 @@ class CallWebhookJob implements ShouldQueue
             $this->dispatchEvent(WebhookCallSucceededEvent::class);
 
         } catch (Exception $exception) {
-
             /** @var \Spatie\WebhookServer\BackoffStrategy\BackoffStrategy $backoffStrategry */
             $backoffStrategy = app($this->backoffStrategyClass);
 
@@ -97,8 +96,6 @@ class CallWebhookJob implements ShouldQueue
 
     private function dispatchEvent(string $eventClass)
     {
-
-
         event(new $eventClass(
             $this->httpVerb,
             $this->webhookUrl,
