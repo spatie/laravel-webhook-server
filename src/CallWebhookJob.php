@@ -65,14 +65,16 @@ class CallWebhookJob implements ShouldQueue
 
             $waitInSeconds = $backoffStrategy->waitInSecondsAfterAttempt($this->attempt);
 
+            // TODO: add event
             $this->release($waitInSeconds);
         }
 
         if ($this->attempts() >= 3) {
+            //TODO: add event
             $this->delete();
         }
     }
 
-    // TODO add support for tags
+    // TODO: add support for tags
 }
 
