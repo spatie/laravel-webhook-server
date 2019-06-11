@@ -2,6 +2,8 @@
 
 namespace Spatie\WebhookServer;
 
+use Spatie\WebhookServer\Exceptions\CouldNotCallWebhook;
+
 class Webhook
 {
     /** @var \Spatie\WebhookServer\CallWebhookJob */
@@ -129,7 +131,13 @@ class Webhook
 
     public function call()
     {
-        // TODO: verify that url, secret and payload have all been set
+        if (empty($this->url())) {
+            throw CouldNotCallWebhook::urlNotSet();
+        }
+
+        if (empty($this->secret)) {
+            throw CouldNotCallWebhook::secretNotSet();
+        }
 
         $this->callWebhookJob->headers = $this->getAllHeaders();
 
