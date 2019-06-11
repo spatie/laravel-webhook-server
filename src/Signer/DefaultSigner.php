@@ -13,7 +13,7 @@ class DefaultSigner implements Signer
 
     public function signatureHeaderName(): string
     {
-        return config('signature_header_name');
+        return config('webhook-server.signature_header_name');
     }
 }
 

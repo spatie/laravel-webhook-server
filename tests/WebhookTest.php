@@ -3,6 +3,7 @@
 namespace Spatie\WebhookServer\Tests;
 
 use Illuminate\Support\Facades\Queue;
+use Spatie\WebhookServer\CallWebhookJob;
 use Spatie\WebhookServer\Exceptions\CouldNotCallWebhook;
 use Spatie\WebhookServer\Exceptions\InvalidBackoffStrategy;
 use Spatie\WebhookServer\Exceptions\InvalidSigner;
@@ -15,6 +16,29 @@ class WebhookTest extends TestCase
         parent::setUp();
 
         Queue::fake();
+    }
+
+    /** @test */
+    public function it_can_dispatch_a_job_that_calls_a_webhook()
+    {
+        $url = 'https://localhost';
+
+        Webhook::create()->url($url)->useSecret('123')->call();
+
+        Queue::assertPushed(CallWebhookJob::class, function (CallWebhookJob $job) use ($url) {
+            $config = config('webhook-server');
+
+            $this->assertEquals($config['queue'], $job->queue);
+            $this->assertEquals($url, $job->webhookUrl);
+            $this->assertEquals($config['http_verb'], $job->httpVerb);
+            $this->assertEquals($config['tries'], $job->tries);
+            $this->assertEquals($config['timeout_in_seconds'], $job->timeout);
+            $this->assertEquals($config['backoff_strategy'], $job->backoffStrategyClass);
+            $this->assertEquals([$config['signature_header_name']], array_keys($job->headers));
+            $this->assertEquals($config['verify_ssl'], $job->verifySsl);
+
+            return true;
+        });
     }
 
     /** @test */
