@@ -167,7 +167,29 @@ Webhook::create()
     ->call();
 ```
 
-To not hammer the remote app we'll wait some time between each attempts. By default we wait 10 seconds between the first and second attempt, 100 seconds between the third and the fourth, 1000 between the fourth and the fifth and so on. 
+To not hammer the remote app we'll wait some time between each attempts. By default we wait 10 seconds between the first and second attempt, 100 seconds between the third and the fourth, 1000 between the fourth and the fifth and so on. This behaviour is implemented in the default `ExponentialBackoffStrategy`.
+
+You can define your own backoff strategy by creating a class that implements `Spatie\WebhookServer\BackoffStrategy\BackoffStrategy`. This is what that interface looks like:
+
+```php
+namespace Spatie\WebhookServer\BackoffStrategy;
+
+interface BackoffStrategy
+{
+    public function waitInSecondsAfterAttempt(int $attempt): int;
+}
+```
+
+You can make your custom strategy the default strategy by specifying it's fully qualified classname in the `backoff_strategy` of the `webhook-server` config file. Alternatively you can specify a strategy for a specific webhook like this.
+
+```php
+Webhook::create()
+    ->useBackoffStrategy(YourBackoffStrategy::class)
+    ...
+    ->call();
+```
+
+Under the hood the retrying of the webhook calls is implemented using [delayed dispatching](https://laravel.com/docs/master/queues#delayed-dispatching). Amazon SQS only has support for a small maximum delay. If you're using Amazon SQS for your queues, make sure you do not configure the package in away so there is more than 15 minutes between each attempt.
 
 
 ### Customizing the http verb
