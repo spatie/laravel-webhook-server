@@ -3,8 +3,8 @@
 namespace Spatie\WebhookServer\Tests;
 
 use Carbon\Carbon;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
 use Orchestra\Testbench\TestCase as Orchestra;
 use Spatie\WebhookServer\WebhookServerServiceProvider;
 

@@ -2,12 +2,12 @@
 
 namespace Spatie\WebhookServer\Tests;
 
+use Spatie\WebhookServer\Webhook;
 use Illuminate\Support\Facades\Queue;
 use Spatie\WebhookServer\CallWebhookJob;
+use Spatie\WebhookServer\Exceptions\InvalidSigner;
 use Spatie\WebhookServer\Exceptions\CouldNotCallWebhook;
 use Spatie\WebhookServer\Exceptions\InvalidBackoffStrategy;
-use Spatie\WebhookServer\Exceptions\InvalidSigner;
-use Spatie\WebhookServer\Webhook;
 
 class WebhookTest extends TestCase
 {
@@ -37,7 +37,6 @@ class WebhookTest extends TestCase
             $this->assertEquals([$config['signature_header_name']], array_keys($job->headers));
             $this->assertEquals($config['verify_ssl'], $job->verifySsl);
             $this->assertEquals($config['tags'], $job->tags);
-
 
             return true;
         });

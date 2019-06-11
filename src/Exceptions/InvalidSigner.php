@@ -14,4 +14,3 @@ class InvalidSigner extends Exception
         return new static("`{$invalidClassName}` is not a valid signer class because it does not implement `$signerInterface`");
     }
 }
-

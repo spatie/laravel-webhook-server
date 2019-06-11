@@ -16,4 +16,3 @@ class DefaultSigner implements Signer
         return config('webhook-server.signature_header_name');
     }
 }
-

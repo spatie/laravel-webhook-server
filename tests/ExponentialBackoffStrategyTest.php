@@ -16,4 +16,3 @@ class ExponentialBackoffStrategyTest extends TestCase
         $this->assertEquals(1000, $strategy->waitInSecondsAfterAttempt(3));
     }
 }
-

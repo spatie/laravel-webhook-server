@@ -14,4 +14,3 @@ class InvalidBackoffStrategy extends Exception
         return new static("`{$invalidBackoffStrategyClass}` is not a valid backoff strategy class because it does not implement `$backoffStrategyInterface`");
     }
 }
-
