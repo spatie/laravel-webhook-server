@@ -2,6 +2,7 @@
 
 namespace Spatie\WebhookServer\Tests\TestClasses;
 
+use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Assert;
 
 class TestClient
@@ -12,7 +13,7 @@ class TestClient
     {
         $this->requests[] = compact('method', 'url', 'options');
 
-        return new TestResponse();
+        return new Response(200);
     }
 
     public function assertRequestCount(int $expectedCount)

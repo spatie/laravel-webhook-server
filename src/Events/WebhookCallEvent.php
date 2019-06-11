@@ -27,8 +27,15 @@ abstract class WebhookCallEvent
     /** @var \GuzzleHttp\Psr7\Response|null */
     public $response;
 
-    public function __construct(string $httpVerb, string $webhookUrl, array $payload, array $headers, array $meta, int $attempt, ?Response $response)
-    {
+    public function __construct(
+        string $httpVerb,
+        string $webhookUrl,
+        array $payload,
+        array $headers,
+        array $meta,
+        int $attempt,
+        ?Response $response
+    ) {
         $this->httpVerb = $httpVerb;
 
         $this->webhookUrl = $webhookUrl;

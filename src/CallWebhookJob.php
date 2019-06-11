@@ -12,6 +12,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Str;
 use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
+use Spatie\WebhookServer\Events\WebhookCallSucceededEvent;
 
 class CallWebhookJob implements ShouldQueue
 {
@@ -36,7 +37,7 @@ class CallWebhookJob implements ShouldQueue
     public $signerClass;
 
     /** @var array */
-    public $headers;
+    public $headers = [];
 
     /** @var bool */
     public $verifySsl;
@@ -45,10 +46,10 @@ class CallWebhookJob implements ShouldQueue
     public $queue;
 
     /** @var array */
-    public $payload;
+    public $payload = [];
 
     /** @var array */
-    public $meta;
+    public $meta = [];
 
     /** @var \GuzzleHttp\Psr7\Response|null */
     private $response;
@@ -69,6 +70,9 @@ class CallWebhookJob implements ShouldQueue
             if (!Str::startsWith($this->response->getStatusCode(), 2)) {
                 throw new Exception('Webhook call failed');
             }
+
+            $this->dispatchEvent(WebhookCallSucceededEvent::class);
+
         } catch (Exception $exception) {
             /** @var \Spatie\WebhookServer\BackoffStrategy\BackoffStrategy $backoffStrategry */
             $backoffStrategy = app($this->backoffStrategyClass);
