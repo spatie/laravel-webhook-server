@@ -26,13 +26,28 @@ class CallWebhookJobTest extends TestCase
     }
 
     /** @test */
-    public function it_can_make_webhook_call()
+    public function it_can_make_a_webhook_call()
     {
         $this->baseWebhook()->call();
 
         $this
             ->testClient
-            ->assertRequestsMade($this->baseRequestMade());
+            ->assertRequestsMade([$this->baseRequest()]);
+    }
+
+    /** @test */
+    public function it_can_use_a_different_http_verb()
+    {
+        $this->baseWebhook()
+            ->useHttpVerb('get')
+            ->call();
+
+        $baseResponse = $this->baseRequest(['method' => 'get']);
+
+        $this
+            ->testClient
+            ->assertRequestsMade([$baseResponse]);
+
     }
 
     protected function baseWebhook(): Webhook
@@ -43,22 +58,24 @@ class CallWebhookJobTest extends TestCase
             ->payload(['a' => 1]);
     }
 
-    protected function baseRequestMade(): array
+    protected function baseRequest(array $overrides = []): array
     {
-        return [
-            [
-                'method' => 'post',
-                'url' => 'https://example.com/webhooks',
-                'options' => [
-                    'timeout' => 3,
-                    'body' => json_encode(['a' => 1]),
-                    'verify' => true,
-                    'headers' => [
-                        'Signature' => '1f14a62b15ba5095326d6c75c3e2e6b462dd71e1c4b7fbdac0f32309adb7be5f',
-                    ],
+
+        $defaultProperties = [
+            'method' => 'post',
+            'url' => 'https://example.com/webhooks',
+            'options' => [
+                'timeout' => 3,
+                'body' => json_encode(['a' => 1]),
+                'verify' => true,
+                'headers' => [
+                    'Signature' => '1f14a62b15ba5095326d6c75c3e2e6b462dd71e1c4b7fbdac0f32309adb7be5f',
                 ],
-            ]
+            ],
+
         ];
+
+        return array_merge($defaultProperties, $overrides);
     }
 }
 
