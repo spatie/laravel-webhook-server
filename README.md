@@ -2,10 +2,10 @@
 
 # Send webhooks from Laravel apps
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/spatie/laravel-webhook-server.svg?style=flat-square)](https://packagist.org/packages/spatie/:package_name)
-[![Build Status](https://img.shields.io/travis/spatie/laravel-webhook-server/master.svg?style=flat-square)](https://travis-ci.org/spatie/:package_name)
-[![Quality Score](https://img.shields.io/scrutinizer/g/spatie/laravel-webhook-server.svg?style=flat-square)](https://scrutinizer-ci.com/g/spatie/:package_name)
-[![Total Downloads](https://img.shields.io/packagist/dt/spatie/laravel-webhook-server.svg?style=flat-square)](https://packagist.org/packages/spatie/:package_name)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/spatie/laravel-webhook-server.svg?style=flat-square)](https://packagist.org/packages/spatie/laravel-webhook-server)
+[![Build Status](https://img.shields.io/travis/spatie/laravel-webhook-server/master.svg?style=flat-square)](https://travis-ci.org/spatie/laravel-webhook-server)
+[![Quality Score](https://img.shields.io/scrutinizer/g/spatie/laravel-webhook-server.svg?style=flat-square)](https://scrutinizer-ci.com/g/spatie/laravel-webhook-server)
+[![Total Downloads](https://img.shields.io/packagist/dt/spatie/laravel-webhook-server.svg?style=flat-square)](https://packagist.org/packages/spatie/laravel-webhook-server)
 
 A webhook is a way for an app to provide information to another app about a certain event. The way the two apps communicate is with a simple HTTP request. 
 
@@ -100,7 +100,7 @@ This will send a post request to `https://other-app.com/webhooks`. The body of t
 
 If the receiving app doesn't respond with a response code starting with `2`, the package will retry calling the webhook after 10 seconds. If that second attempt fails, the package will attempt to call the webhook a final time after 100 seconds. Should that attempt fail the `FinalWebhookCallFailedEvent` will be raised.
 
-### Signing the webhook call
+### How signing requests works
 
 When setting up it's common to generate, store and share a secret secret between your app and the app that wants to receive webhooks. Generating the secret could be done with `Illuminate\Support\Str::random()`, but it's really entirely up to you. The package will use the secret to sign a webhook call.
 
@@ -145,6 +145,31 @@ Webhook::create()
 
 If you just want to customize the name of the header you don't need to use a custom signer, but you can just change the value in the `signature_header_name` in the `webhook-server` config file.
 
+### Retrying failed webhooks
+
+When the app to which we're sending the webhook fails to send a response with a `2xx` status code the package will consider the call as failed. The call will also be considered failed if the remote app doesn't respond within 3 seconds.
+
+You can configure that default timeout in the `timeout_in_seconds` key of the `webhook-server` config file. Alternatively you can override the timeout for a specific webhook like this:
+
+```php
+Webhook::create()
+    ->timeoutInSeconds(5)
+    ...
+    ->call();
+```
+
+When a webhook call fails we'll retry the call two more times. You can set the default amount of times we just retry the webhook call in the `tries` key of the config file. Alternatively, you can specify the amount of tries for a specific webhook like this:
+
+```php
+Webhook::create()
+    ->maximumTries(5)
+    ...
+    ->call();
+```
+
+To not hammer the remote app we'll wait some time between each attempts. By default we wait 10 seconds between the first and second attempt, 100 seconds between the third and the fourth, 1000 between the fourth and the fifth and so on. 
+
+
 ### Customizing the http verb
 
 By default all webhooks will use the `post` method. You can customize that by specify the http verb you want in the `http_verb` key of the `webhook-server` config file.
@@ -183,6 +208,8 @@ Webhook::create()
     ...
     ->call();
 ```
+
+
 
 ## Testing
 
