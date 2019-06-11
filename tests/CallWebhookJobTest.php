@@ -47,7 +47,25 @@ class CallWebhookJobTest extends TestCase
         $this
             ->testClient
             ->assertRequestsMade([$baseResponse]);
+    }
 
+    /** @test */
+    public function it_can_add_extra_headers()
+    {
+        $extraHeaders = [
+            'header1' => 'value1',
+            'headers2' => 'value2',
+        ];
+
+        $this->baseWebhook()
+            ->withHeaders($extraHeaders)
+            ->call();
+
+        $baseResponse = $this->baseRequest(['options' => ['headers' => $extraHeaders]]);
+
+        $this
+            ->testClient
+            ->assertRequestsMade([$baseResponse]);
     }
 
     protected function baseWebhook(): Webhook
@@ -60,7 +78,6 @@ class CallWebhookJobTest extends TestCase
 
     protected function baseRequest(array $overrides = []): array
     {
-
         $defaultProperties = [
             'method' => 'post',
             'url' => 'https://example.com/webhooks',
@@ -75,7 +92,7 @@ class CallWebhookJobTest extends TestCase
 
         ];
 
-        return array_merge($defaultProperties, $overrides);
+        return array_merge_recursive($defaultProperties, $overrides);
     }
 }
 
