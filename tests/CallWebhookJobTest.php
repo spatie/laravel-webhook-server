@@ -38,7 +38,8 @@ class CallWebhookJobTest extends TestCase
     /** @test */
     public function it_can_use_a_different_http_verb()
     {
-        $this->baseWebhook()
+        $this
+            ->baseWebhook()
             ->useHttpVerb('get')
             ->call();
 
@@ -61,11 +62,16 @@ class CallWebhookJobTest extends TestCase
             ->withHeaders($extraHeaders)
             ->call();
 
-        $baseResponse = $this->baseRequest(['options' => ['headers' => $extraHeaders]]);
+        $baseRequest = $this->baseRequest();
+
+        $baseRequest['options']['headers'] = array_merge(
+            $baseRequest['options']['headers'],
+            $extraHeaders,
+        );
 
         $this
             ->testClient
-            ->assertRequestsMade([$baseResponse]);
+            ->assertRequestsMade([$baseRequest]);
     }
 
     protected function baseWebhook(): Webhook
@@ -89,10 +95,9 @@ class CallWebhookJobTest extends TestCase
                     'Signature' => '1f14a62b15ba5095326d6c75c3e2e6b462dd71e1c4b7fbdac0f32309adb7be5f',
                 ],
             ],
-
         ];
 
-        return array_merge_recursive($defaultProperties, $overrides);
+        return array_merge($defaultProperties, $overrides);
     }
 }
 
