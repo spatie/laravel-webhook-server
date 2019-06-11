@@ -42,7 +42,7 @@ class Webhook
 
     public function __construct()
     {
-        $this->callWebhookJob = new CallWebhookJob();
+        $this->callWebhookJob =  app(CallWebhookJob::class);
     }
 
     public function url(string $url)
