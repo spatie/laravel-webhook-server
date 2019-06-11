@@ -143,6 +143,8 @@ Webhook::create()
     ->call();
 ```
 
+If you just want to customize the name of the header you don't need to use a custom signer, but you can just change the value in the `signature_header_name` in the `webhook-server` config file.
+
 ### Customizing the http verb
 
 By default all webhooks will use the `post` method. You can customize that by specify the http verb you want in the `http_verb` key of the `webhook-server` config file.
@@ -169,9 +171,9 @@ Webhook::create()
     ->call();
 ```
 
-### Verifying the ssl certificate of the receiving app
+### Verifying the SSL certificate of the receiving app
 
-When using an url that starts with `https://` the package will verify if the ssl certificate of the receiving party is valid. If it is not, we will consider the webhook call failed. We don't recommend this but you can turn off this verification by setting the `verify_ssl` key in the `webhook-server` config file to `false`.
+When using an url that starts with `https://` the package will verify if the SSL certificate of the receiving party is valid. If it is not, we will consider the webhook call failed. We don't recommend this but you can turn off this verification by setting the `verify_ssl` key in the `webhook-server` config file to `false`.
 
 You can also disable the verification per webhook call with the `doNotVerifySsl` method.
 
