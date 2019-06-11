@@ -7,6 +7,8 @@ use GuzzleHttp\Client;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Str;
+use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
+use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
 
 class CallWebhookJob implements ShouldQueue
 {
@@ -42,6 +44,12 @@ class CallWebhookJob implements ShouldQueue
     /** @var array */
     public $payload;
 
+    /** @var array */
+    public $meta;
+
+    /** @var \GuzzleHttp\Psr7\Response|null */
+    private $response;
+
     public function handle()
     {
         $client = app(Client::class);
@@ -49,14 +57,14 @@ class CallWebhookJob implements ShouldQueue
         $httpVerb = $this->httpVerb;
 
         try {
-            $response = $client->$httpVerb($this->webhookUrl, [
+            $this->response = $client->$httpVerb($this->webhookUrl, [
                 'timeout' => $this->timeout,
                 'body' => json_encode($this->payload),
                 'verify' => $this->verifySsl,
                 'headers' => $this->headers,
             ]);
 
-            if (!Str::startsWith($response->getStatusCode(), 2)) {
+            if (!Str::startsWith($this->response->getStatusCode(), 2)) {
                 throw new Exception('Webhook call failed');
             }
         } catch (Exception $exception) {
@@ -65,14 +73,28 @@ class CallWebhookJob implements ShouldQueue
 
             $waitInSeconds = $backoffStrategy->waitInSecondsAfterAttempt($this->attempt);
 
-            // TODO: add event
+            $this->dispatchEvent(WebhookCallFailedEvent::class);
             $this->release($waitInSeconds);
         }
 
-        if ($this->attempts() >= 3) {
-            //TODO: add event
+        if ($this->attempts() >= $this->tries) {
+            $this->dispatchEvent(FinalWebhookCallFailedEvent::class);
+
             $this->delete();
         }
+    }
+
+    private function dispatchEvent(string $eventClass)
+    {
+        event(new $eventClass(
+            $this->httpVerb,
+            $this->webhookUrl,
+            $this->payload,
+            $this->headers,
+            $this->meta,
+            $this->attempts(),
+            $this->response,
+        ));
     }
 
     // TODO: add support for tags

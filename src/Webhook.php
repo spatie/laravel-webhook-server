@@ -14,10 +14,10 @@ class Webhook
     protected $signer;
 
     /** @var array */
-    protected $headers;
+    protected $headers = [];
 
     /** @var array */
-    private $payload;
+    private $payload = [];
 
     public static function create()
     {
@@ -116,6 +116,13 @@ class Webhook
     public function verifySsl(bool $verifySsl)
     {
         $this->callWebhookJob->verifySsl = $verifySsl;
+
+        return $this;
+    }
+
+    public function meta(array $meta)
+    {
+        $this->callWebhookJob->meta = $meta;
 
         return $this;
     }
