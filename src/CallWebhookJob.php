@@ -55,12 +55,11 @@ class CallWebhookJob implements ShouldQueue
 
     public function handle()
     {
-        $httpVerb = $this->httpVerb;
-
+        /** @var \GuzzleHttp\Client $client */
         $client = app(Client::class);
 
         try {
-            $this->response = $client->$httpVerb($this->webhookUrl, [
+            $this->response = $client->request($this->httpVerb, $this->webhookUrl, [
                 'timeout' => $this->timeout,
                 'body' => json_encode($this->payload),
                 'verify' => $this->verifySsl,
