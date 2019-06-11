@@ -9,4 +9,3 @@ class ExponentialBackoffStrategy implements BackoffStrategy
         return 10 ** $attempt;
     }
 }
-

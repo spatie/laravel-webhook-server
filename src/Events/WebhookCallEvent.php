@@ -50,4 +50,3 @@ abstract class WebhookCallEvent
         $this->response = $response;
     }
 }
-

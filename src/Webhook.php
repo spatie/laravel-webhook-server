@@ -2,11 +2,11 @@
 
 namespace Spatie\WebhookServer;
 
-use Spatie\WebhookServer\BackoffStrategy\BackoffStrategy;
-use Spatie\WebhookServer\Exceptions\CouldNotCallWebhook;
-use Spatie\WebhookServer\Exceptions\InvalidBackoffStrategy;
-use Spatie\WebhookServer\Exceptions\InvalidSigner;
 use Spatie\WebhookServer\Signer\Signer;
+use Spatie\WebhookServer\Exceptions\InvalidSigner;
+use Spatie\WebhookServer\Exceptions\CouldNotCallWebhook;
+use Spatie\WebhookServer\BackoffStrategy\BackoffStrategy;
+use Spatie\WebhookServer\Exceptions\InvalidBackoffStrategy;
 
 class Webhook
 {
@@ -43,7 +43,7 @@ class Webhook
 
     public function __construct()
     {
-        $this->callWebhookJob =  app(CallWebhookJob::class);
+        $this->callWebhookJob = app(CallWebhookJob::class);
     }
 
     public function url(string $url)
@@ -179,6 +179,4 @@ class Webhook
 
         return $headers;
     }
-
-
 }
