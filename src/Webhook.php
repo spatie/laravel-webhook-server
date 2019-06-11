@@ -125,9 +125,16 @@ class Webhook
         return $this;
     }
 
-    public function verifySsl(bool $verifySsl)
+    public function verifySsl(bool $verifySsl = true)
     {
         $this->callWebhookJob->verifySsl = $verifySsl;
+
+        return $this;
+    }
+
+    public function doNotVerifySsl()
+    {
+        $this->verifySsl(false);
 
         return $this;
     }
@@ -164,4 +171,6 @@ class Webhook
 
         return $headers;
     }
+
+
 }

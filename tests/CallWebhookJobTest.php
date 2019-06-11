@@ -74,6 +74,19 @@ class CallWebhookJobTest extends TestCase
             ->assertRequestsMade([$baseRequest]);
     }
 
+    /** @test */
+    public function it_can_disable_verifying_ssl()
+    {
+        $this->baseWebhook()->doNotVerifySsl()->call();
+
+        $baseRequest = $this->baseRequest();
+        $baseRequest['options']['verify'] = false;
+
+        $this
+            ->testClient
+            ->assertRequestsMade([$baseRequest]);
+    }
+
     protected function baseWebhook(): Webhook
     {
         return Webhook::create()
