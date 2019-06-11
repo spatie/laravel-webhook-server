@@ -100,6 +100,23 @@ This will send a post request to `https://other-app.com/webhooks`. The body of t
 
 If the receiving app doesn't respond with a response code starting with `2`, the package will retry calling the webhook after 10 seconds. If that second attempt fails, the package will attempt to call the webhook a final time after 100 seconds. Should that attempt fail the `FinalWebhookCallFailedEvent` will be raised.
 
+### Signing the webhook call
+
+When setting up it's common to generate, store and share a secret secret between your app and the app that wants to receive webhooks. Generating the secret could be done with `Illuminate\Support\Str::random()`, but it's really entirely up to you. The package will use the secret to sign a webhook call.
+
+By default the package will add a header called `Signature` that will contain a signature the receiving app can use the payload hasn't been tampered with. This is how that signature is calculated.
+
+```php
+// payload is the array passed to the `payload` method of the webhook
+// secret is the string given to the `signUsingSecret` method on the webhook.
+
+$payloadJson = json_encode($payload); 
+
+$signature = hash_hmac('sha256', $payloadJson, $secret);
+```
+
+### Customizing signing requests
+
 
 
 ### Testing

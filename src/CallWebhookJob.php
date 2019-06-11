@@ -97,6 +97,8 @@ class CallWebhookJob implements ShouldQueue
 
     private function dispatchEvent(string $eventClass)
     {
+
+
         event(new $eventClass(
             $this->httpVerb,
             $this->webhookUrl,
