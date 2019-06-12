@@ -4,6 +4,7 @@ namespace Spatie\WebhookServer\Tests;
 
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Event;
+use Spatie\TestTime\TestTime;
 use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
 use Spatie\WebhookServer\Tests\TestClasses\TestClient;
@@ -108,17 +109,17 @@ class CallWebhookJobTest extends TestCase
         $this->artisan('queue:work --once');
         Event::assertDispatched(WebhookCallFailedEvent::class, 1);
 
-        $this->progressSeconds(10);
+        TestTime::addSeconds(10);
         $this->artisan('queue:work --once');
         Event::assertDispatched(WebhookCallFailedEvent::class, 2);
 
-        $this->progressSeconds(100);
+        TestTime::addSeconds(100);
         $this->artisan('queue:work --once');
         Event::assertDispatched(WebhookCallFailedEvent::class, 3);
         Event::assertDispatched(FinalWebhookCallFailedEvent::class, 1);
         $this->testClient->assertRequestCount(3);
 
-        $this->progressSeconds(1000);
+        TestTime::addSeconds(1000);
         $this->artisan('queue:work --once');
         Event::assertDispatched(WebhookCallFailedEvent::class, 3);
         Event::assertDispatched(FinalWebhookCallFailedEvent::class, 1);

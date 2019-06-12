@@ -46,18 +46,4 @@ class TestCase extends Orchestra
             $table->unsignedInteger('created_at');
         });
     }
-
-    protected function setNow(string $time, $format = 'Y-m-d H:i:s')
-    {
-        $now = Carbon::createFromFormat($format, $time);
-
-        Carbon::setTestNow($now);
-    }
-
-    public function progressSeconds(int $seconds)
-    {
-        $newNow = now()->addSeconds($seconds);
-
-        Carbon::setTestNow($newNow);
-    }
 }

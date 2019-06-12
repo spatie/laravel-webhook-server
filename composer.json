@@ -23,7 +23,8 @@
         "guzzlehttp/guzzle": "^6.3",
         "illuminate/bus": "^5.8",
         "illuminate/queue": "^5.8",
-        "illuminate/support": "^5.8"
+        "illuminate/support": "^5.8",
+        "spatie/test-time": "^1.0"
     },
     "require-dev": {
         "orchestra/testbench": "^3.8",
