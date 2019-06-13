@@ -14,13 +14,9 @@ class ExponentialBackoffStrategyTest extends TestCase
         $this->assertEquals(10, $strategy->waitInSecondsAfterAttempt(1));
         $this->assertEquals(100, $strategy->waitInSecondsAfterAttempt(2));
         $this->assertEquals(1000, $strategy->waitInSecondsAfterAttempt(3));
-    }
-
-    /** @test */
-    public function it_has_a_sensible_maximum_value()
-    {
-        $strategy = new ExponentialBackoffStrategy();
-
-        $this->assertEquals(100000, $strategy->waitInSecondsAfterAttempt(1000));
+        $this->assertEquals(10000, $strategy->waitInSecondsAfterAttempt(4));
+        $this->assertEquals(100000, $strategy->waitInSecondsAfterAttempt(5));
+        $this->assertEquals(100000, $strategy->waitInSecondsAfterAttempt(6));
+        $this->assertEquals(100000, $strategy->waitInSecondsAfterAttempt(7));
     }
 }
