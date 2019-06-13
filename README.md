@@ -82,7 +82,7 @@ return [
 ];
 ```
 
-By default the package uses queues to retry failed webhook requests. Be sure to setup a real queue other that `sync` in non-local environments.
+By default the package uses queues to retry failed webhook requests. Be sure to setup a real queue other than `sync` in non-local environments.
 
 ## Usage
 
