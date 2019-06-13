@@ -167,7 +167,7 @@ Webhook::create()
     ->call();
 ```
 
-To not hammer the remote app we'll wait some time between each attempts. By default we wait 10 seconds between the first and second attempt, 100 seconds between the third and the fourth, 1000 between the fourth and the fifth and so on. This behaviour is implemented in the default `ExponentialBackoffStrategy`.
+To not hammer the remote app we'll wait some time between each attempts. By default we wait 10 seconds between the first and second attempt, 100 seconds between the third and the fourth, 1000 between the fourth and the fifth and so on. The maximum amount of seconds that we'll wait is 100 000, which is about 27 hours. This behaviour is implemented in the default `ExponentialBackoffStrategy`.
 
 You can define your own backoff strategy by creating a class that implements `Spatie\WebhookServer\BackoffStrategy\BackoffStrategy`. This is what that interface looks like:
 

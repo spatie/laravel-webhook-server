@@ -6,6 +6,6 @@ class ExponentialBackoffStrategy implements BackoffStrategy
 {
     public function waitInSecondsAfterAttempt(int $attempt): int
     {
-        return 10 ** $attempt;
+        return min(10 ** $attempt, 100000);
     }
 }
