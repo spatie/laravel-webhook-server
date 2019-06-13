@@ -11,7 +11,7 @@ A webhook is a way for an app to provide information to another app about a cert
 
 This package allows you to easily configure and send webhooks in a Laravel app. It has support for [signing calls](https://github.com/spatie/laravel-webhook-server#how-signing-requests-works), [retrying calls and backoff strategies](https://github.com/spatie/laravel-webhook-server#retrying-failed-webhooks).
 
-If you need to receive and process webhooks take a look at our [laravel-webhook-client](https://github.com/spatie/laravel-webhook-server) package.
+If you need to receive and process webhooks take a look at our [laravel-webhook-client](https://github.com/spatie/laravel-webhook-client) package.
 
 ## Installation
 
@@ -82,7 +82,7 @@ return [
 ];
 ```
 
-By default the package uses queues to retry failed webhook requests. Be sure to setup a real queue other that `sync` in non-local environments.
+By default the package uses queues to retry failed webhook requests. Be sure to setup a real queue other than `sync` in non-local environments.
 
 ## Usage
 
