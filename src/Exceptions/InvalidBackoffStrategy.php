@@ -7,7 +7,7 @@ use Spatie\WebhookServer\BackoffStrategy\BackoffStrategy;
 
 class InvalidBackoffStrategy extends Exception
 {
-    public static function doesNotExtendBackoffStrategy(string $invalidBackoffStrategyClass)
+    public static function doesNotExtendBackoffStrategy(string $invalidBackoffStrategyClass): self
     {
         $backoffStrategyInterface = BackoffStrategy::class;
 
