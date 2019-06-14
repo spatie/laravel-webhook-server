@@ -1,5 +1,3 @@
-**WORK IN PROGRESS: DO NOT USE (YET)**
-
 # Send webhooks from Laravel apps
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/spatie/laravel-webhook-server.svg?style=flat-square)](https://packagist.org/packages/spatie/laravel-webhook-server)
