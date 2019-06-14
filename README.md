@@ -90,7 +90,7 @@ This is the simplest way to call a webhook:
 Webhook::create()
    ->url('https://other-app.com/webhooks')
    ->payload(['key' => 'value'])
-   ->signUsingSecret('sign-using-this-secret')
+   ->useSecret('sign-using-this-secret')
    ->call();
 ```
 
