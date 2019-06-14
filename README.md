@@ -100,7 +100,7 @@ If the receiving app doesn't respond with a response code starting with `2`, the
 
 ### How signing requests works
 
-When setting up it's common to generate, store and share a secret secret between your app and the app that wants to receive webhooks. Generating the secret could be done with `Illuminate\Support\Str::random()`, but it's really entirely up to you. The package will use the secret to sign a webhook call.
+When setting up it's common to generate, store and share a secret between your app and the app that wants to receive webhooks. Generating the secret could be done with `Illuminate\Support\Str::random()`, but it's really entirely up to you. The package will use the secret to sign a webhook call.
 
 By default the package will add a header called `Signature` that will contain a signature the receiving app can use the payload hasn't been tampered with. This is how that signature is calculated.
 
