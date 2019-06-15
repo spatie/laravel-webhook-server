@@ -8,7 +8,7 @@ use Spatie\WebhookServer\Exceptions\CouldNotCallWebhook;
 use Spatie\WebhookServer\BackoffStrategy\BackoffStrategy;
 use Spatie\WebhookServer\Exceptions\InvalidBackoffStrategy;
 
-class Webhook
+class WebhookCall
 {
     /** @var \Spatie\WebhookServer\CallWebhookJob */
     protected $callWebhookJob;
@@ -154,7 +154,7 @@ class Webhook
         return $this;
     }
 
-    public function call()
+    public function dispatch(): void
     {
         if (! $this->callWebhookJob->webhookUrl) {
             throw CouldNotCallWebhook::urlNotSet();

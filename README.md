@@ -87,11 +87,11 @@ By default the package uses queues to retry failed webhook requests. Be sure to 
 This is the simplest way to call a webhook:
 
 ```php
-Webhook::create()
+WebhookCall::create()
    ->url('https://other-app.com/webhooks')
    ->payload(['key' => 'value'])
    ->signUsingSecret('sign-using-this-secret')
-   ->call();
+   ->dispatch();
 ```
 
 This will send a post request to `https://other-app.com/webhooks`. The body of the request will be json encoded version of the array passed to `payload`. The request will have a header called `Signature` that will contain a signature the receiving app can use [to verify](https://github.com/spatie/laravel-webhook-server#how-signing-requests-works) the payload hasn't been tampered with. 
@@ -135,10 +135,10 @@ After creating your signer you can specify it's class name in the `signer` key o
 You can also specify a signer for a specific webhook call
 
 ```php
-Webhook::create()
+WebhookCall::create()
     ->signUsing(YourCustomSigner::class)
     ...
-    ->call();
+    ->dispatch();
 ```
 
 If you just want to customize the name of the header you don't need to use a custom signer, but you can just change the value in the `signature_header_name` in the `webhook-server` config file.
@@ -150,19 +150,19 @@ When the app to which we're sending the webhook fails to send a response with a 
 You can configure that default timeout in the `timeout_in_seconds` key of the `webhook-server` config file. Alternatively you can override the timeout for a specific webhook like this:
 
 ```php
-Webhook::create()
+WebhookCall::create()
     ->timeoutInSeconds(5)
     ...
-    ->call();
+    ->dispatch();
 ```
 
 When a webhook call fails we'll retry the call two more times. You can set the default amount of times we just retry the webhook call in the `tries` key of the config file. Alternatively, you can specify the amount of tries for a specific webhook like this:
 
 ```php
-Webhook::create()
+WebhookCall::create()
     ->maximumTries(5)
     ...
-    ->call();
+    ->dispatch();
 ```
 
 To not hammer the remote app we'll wait some time between each attempts. By default we wait 10 seconds between the first and second attempt, 100 seconds between the third and the fourth, 1000 between the fourth and the fifth and so on. The maximum amount of seconds that we'll wait is 100 000, which is about 27 hours. This behaviour is implemented in the default `ExponentialBackoffStrategy`.
@@ -181,10 +181,10 @@ interface BackoffStrategy
 You can make your custom strategy the default strategy by specifying it's fully qualified classname in the `backoff_strategy` of the `webhook-server` config file. Alternatively you can specify a strategy for a specific webhook like this.
 
 ```php
-Webhook::create()
+WebhookCall::create()
     ->useBackoffStrategy(YourBackoffStrategy::class)
     ...
-    ->call();
+    ->dispatch();
 ```
 
 Under the hood the retrying of the webhook calls is implemented using [delayed dispatching](https://laravel.com/docs/master/queues#delayed-dispatching). Amazon SQS only has support for a small maximum delay. If you're using Amazon SQS for your queues, make sure you do not configure the package in away so there is more than 15 minutes between each attempt.
@@ -197,10 +197,10 @@ By default all webhooks will use the `post` method. You can customize that by sp
 You can also override the default for a specific call by use the `useHttpVerb` method.
 
 ```php
-Webhook::create()
+WebhookCall::create()
     ->useHttpVerb('get')
     ...
-    ->call();
+    ->dispatch();
 ```
 
 ### Adding extra headers
@@ -208,12 +208,12 @@ Webhook::create()
 You can extra headers by adding the to the `headers` key in the `webhook-server` config file. If you want to add extra headers for a specific webhook you can use the `withHeaders` call.
 
 ```php
-Webhook::create()
+WebhookCall::create()
     ->withHeaders([
         'Another Header' => 'Value of Another Header'
     ])
     ...
-    ->call();
+    ->dispatch();
 ```
 
 ### Verifying the SSL certificate of the receiving app
@@ -223,10 +223,10 @@ When using an url that starts with `https://` the package will verify if the SSL
 You can also disable the verification per webhook call with the `doNotVerifySsl` method.
 
 ```php
-Webhook::create()
+WebhookCall::create()
     ->doNotVerifySsl()
     ...
-    ->call();
+    ->dispatch();
 ```
 
 ### Adding meta information
@@ -236,10 +236,10 @@ You can add extra meta information to the webhook. This meta information will no
 This is how you can add meta information:
 
 ```php
-Webhook::create()
+WebhookCall::create()
     ->meta($arrayWithMetaInformation)
     ...
-    ->call();
+    ->dispatch();
 ```
 
 ### Adding tags
@@ -249,10 +249,10 @@ If you're using [Laravel Horizon](https://laravel.com/docs/5.8/horizon) for your
 To add tags to the underlying job that'll perform the webhook call, simply specify them in the `tags` key of the `webhook-server` config file or use the `withTags` method:
 
 ```php
-Webhook::create()
+WebhookCall::create()
     ->withTags($tags)
     ...
-    ->call();
+    ->dispatch();
 ```
 
 ### Events

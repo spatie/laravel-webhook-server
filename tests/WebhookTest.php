@@ -2,7 +2,7 @@
 
 namespace Spatie\WebhookServer\Tests;
 
-use Spatie\WebhookServer\Webhook;
+use Spatie\WebhookServer\WebhookCall;
 use Illuminate\Support\Facades\Queue;
 use Spatie\WebhookServer\CallWebhookJob;
 use Spatie\WebhookServer\Exceptions\InvalidSigner;
@@ -23,7 +23,7 @@ class WebhookTest extends TestCase
     {
         $url = 'https://localhost';
 
-        Webhook::create()->url($url)->useSecret('123')->call();
+        WebhookCall::create()->url($url)->useSecret('123')->dispatch();
 
         Queue::assertPushed(CallWebhookJob::class, function (CallWebhookJob $job) use ($url) {
             $config = config('webhook-server');
@@ -47,7 +47,7 @@ class WebhookTest extends TestCase
     {
         $this->expectException(CouldNotCallWebhook::class);
 
-        Webhook::create()->call();
+        WebhookCall::create()->dispatch();
     }
 
     /** @test */
@@ -55,7 +55,7 @@ class WebhookTest extends TestCase
     {
         $this->expectException(CouldNotCallWebhook::class);
 
-        Webhook::create()->url('https://localhost')->call();
+        WebhookCall::create()->url('https://localhost')->dispatch();
     }
 
     /** @test */
@@ -63,7 +63,7 @@ class WebhookTest extends TestCase
     {
         $this->expectException(InvalidBackoffStrategy::class);
 
-        Webhook::create()->useBackoffStrategy(static::class);
+        WebhookCall::create()->useBackoffStrategy(static::class);
     }
 
     /** @test */
@@ -71,6 +71,6 @@ class WebhookTest extends TestCase
     {
         $this->expectException(InvalidSigner::class);
 
-        Webhook::create()->signUsing(static::class);
+        WebhookCall::create()->signUsing(static::class);
     }
 }

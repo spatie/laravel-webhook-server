@@ -8,7 +8,7 @@ use Spatie\TestTime\TestTime;
 use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
 use Spatie\WebhookServer\Tests\TestClasses\TestClient;
-use Spatie\WebhookServer\Webhook;
+use Spatie\WebhookServer\WebhookCall;
 
 class CallWebhookJobTest extends TestCase
 {
@@ -31,7 +31,7 @@ class CallWebhookJobTest extends TestCase
     /** @test */
     public function it_can_make_a_webhook_call()
     {
-        $this->baseWebhook()->call();
+        $this->baseWebhook()->dispatch();
 
         $this->artisan('queue:work --once');
 
@@ -46,7 +46,7 @@ class CallWebhookJobTest extends TestCase
         $this
             ->baseWebhook()
             ->useHttpVerb('get')
-            ->call();
+            ->dispatch();
 
         $baseResponse = $this->baseRequest(['method' => 'get']);
 
@@ -68,7 +68,7 @@ class CallWebhookJobTest extends TestCase
 
         $this->baseWebhook()
             ->withHeaders($extraHeaders)
-            ->call();
+            ->dispatch();
 
         $baseRequest = $this->baseRequest();
 
@@ -87,7 +87,7 @@ class CallWebhookJobTest extends TestCase
     /** @test */
     public function it_can_disable_verifying_ssl()
     {
-        $this->baseWebhook()->doNotVerifySsl()->call();
+        $this->baseWebhook()->doNotVerifySsl()->dispatch();
 
         $baseRequest = $this->baseRequest();
         $baseRequest['options']['verify'] = false;
@@ -104,7 +104,7 @@ class CallWebhookJobTest extends TestCase
     {
         $this->testClient->letEveryRequestFail();
 
-        $this->baseWebhook()->call();
+        $this->baseWebhook()->dispatch();
 
         $this->artisan('queue:work --once');
         Event::assertDispatched(WebhookCallFailedEvent::class, 1);
@@ -126,9 +126,9 @@ class CallWebhookJobTest extends TestCase
         $this->testClient->assertRequestCount(3);
     }
 
-    protected function baseWebhook(): Webhook
+    protected function baseWebhook(): WebhookCall
     {
-        return Webhook::create()
+        return WebhookCall::create()
             ->url('https://example.com/webhooks')
             ->useSecret('abc')
             ->payload(['a' => 1]);
