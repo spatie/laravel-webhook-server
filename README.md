@@ -260,7 +260,7 @@ WebhookCall::create()
 The package fires these events:
 - `WebhookCallSucceededEvent`: the remote app responded with a `2xx` response code.
 - `WebhookCallFailedEvent`: the remote app responded with a non `2xx` response code, or it did not respond at all
-- `FinalWebhookCalledFailedEvent`: the final attempt to call the webhook failed.
+- `FinalWebhookCallFailedEvent`: the final attempt to call the webhook failed.
 
 All these events have these properties:
 
