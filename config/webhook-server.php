@@ -27,7 +27,9 @@ return [
     /*
      * These are the headers that will be added to all webhook requests.
      */
-    'headers' => [],
+    'headers' => [
+       'Content-Type' => 'application/json'
+    ],
 
     /*
      * If a call to a webhook takes longer that this amount of seconds
