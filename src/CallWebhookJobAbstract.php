@@ -4,14 +4,14 @@ namespace Spatie\WebhookServer;
 
 use Exception;
 use GuzzleHttp\Client;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Str;
-use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
+use Illuminate\Bus\Queueable;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallSucceededEvent;
+use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
 
 abstract class CallWebhookJobAbstract implements ShouldQueue
 {
@@ -71,7 +71,7 @@ abstract class CallWebhookJobAbstract implements ShouldQueue
                 'headers' => $this->headers,
             ]);
 
-            if (!Str::startsWith($this->response->getStatusCode(), 2)) {
+            if (! Str::startsWith($this->response->getStatusCode(), 2)) {
                 throw new Exception('Webhook call failed');
             }
 
