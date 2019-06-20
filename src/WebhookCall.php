@@ -43,7 +43,7 @@ class WebhookCall
 
     public function __construct()
     {
-        $this->callWebhookJob = app(CallWebhookJob::class);
+        $this->callWebhookJob = app(CallWebhookJobAbstract::class);
     }
 
     public function url(string $url)
@@ -92,7 +92,7 @@ class WebhookCall
 
     public function useBackoffStrategy(string $backoffStrategyClass)
     {
-        if (! is_subclass_of($backoffStrategyClass, BackoffStrategy::class)) {
+        if (!is_subclass_of($backoffStrategyClass, BackoffStrategy::class)) {
             throw InvalidBackoffStrategy::doesNotExtendBackoffStrategy($backoffStrategyClass);
         }
 
@@ -110,7 +110,7 @@ class WebhookCall
 
     public function signUsing(string $signerClass)
     {
-        if (! is_subclass_of($signerClass, Signer::class)) {
+        if (!is_subclass_of($signerClass, Signer::class)) {
             throw InvalidSigner::doesImplementSigner($signerClass);
         }
 
@@ -156,7 +156,7 @@ class WebhookCall
 
     public function dispatch(): void
     {
-        if (! $this->callWebhookJob->webhookUrl) {
+        if (!$this->callWebhookJob->webhookUrl) {
             throw CouldNotCallWebhook::urlNotSet();
         }
 

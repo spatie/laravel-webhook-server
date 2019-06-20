@@ -18,5 +18,11 @@ class WebhookServerServiceProvider extends ServiceProvider
     public function register()
     {
         $this->mergeConfigFrom(__DIR__.'/../config/webhook-server.php', 'webhook-server');
+
+        if (strpos($this->app->version(), 'Lumen') !== false) {
+            $this->app->alias(CallWebhookJob::class, CallWebhookJobAbstract::class);
+        } else {
+            $this->app->alias(CallWebhookJobLumen::class, CallWebhookJobAbstract::class);
+        }
     }
 }
