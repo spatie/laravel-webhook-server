@@ -4,7 +4,7 @@ namespace Spatie\WebhookServer;
 
 use Illuminate\Foundation\Bus\Dispatchable;
 
-class CallWebhookJob extends CallWebhookJobAbstract
+class CallWebhookJobLumen extends CallWebhookJobAbstract
 {
-    use Dispatchable;
+    // without Dispatchable
 }
