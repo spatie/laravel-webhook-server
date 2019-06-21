@@ -144,6 +144,7 @@ class CallWebhookJobTest extends TestCase
                 'body' => json_encode(['a' => 1]),
                 'verify' => true,
                 'headers' => [
+                    'Content-Type' => 'application/json',
                     'Signature' => '1f14a62b15ba5095326d6c75c3e2e6b462dd71e1c4b7fbdac0f32309adb7be5f',
                 ],
             ],

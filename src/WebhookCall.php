@@ -171,7 +171,10 @@ class WebhookCall
 
     protected function getAllHeaders(): array
     {
-        $headers = $this->headers;
+        $headers = array_merge(
+            config('webhook-server.headers'),
+            $this->headers,
+        );
 
         $signature = $this->signer->calculateSignature($this->payload, $this->secret);
 
