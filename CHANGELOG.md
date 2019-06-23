@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 1.0.4 - 2019-06-22
+
+- remove constructor on `WebhookCallFailedEvent` so it inherits properties
+
 ## 1.0.3 - 2019-06-19
 
 - add `ContentType` header with value `application/json` by default
