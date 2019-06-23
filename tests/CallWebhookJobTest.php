@@ -62,6 +62,7 @@ class CallWebhookJobTest extends TestCase
     public function it_can_add_extra_headers()
     {
         $extraHeaders = [
+            'Content-Type' => 'application/json',
             'header1' => 'value1',
             'headers2' => 'value2',
         ];
@@ -74,7 +75,7 @@ class CallWebhookJobTest extends TestCase
 
         $baseRequest['options']['headers'] = array_merge(
             $baseRequest['options']['headers'],
-            $extraHeaders,
+            $extraHeaders
         );
 
         $this->artisan('queue:work --once');
@@ -144,6 +145,7 @@ class CallWebhookJobTest extends TestCase
                 'body' => json_encode(['a' => 1]),
                 'verify' => true,
                 'headers' => [
+                    'Content-Type' => 'application/json',
                     'Signature' => '1f14a62b15ba5095326d6c75c3e2e6b462dd71e1c4b7fbdac0f32309adb7be5f',
                 ],
             ],
