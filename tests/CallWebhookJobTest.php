@@ -110,7 +110,11 @@ class CallWebhookJobTest extends TestCase
         $this->artisan('queue:work --once');
         Event::assertDispatched(WebhookCallFailedEvent::class, 1);
 
-        TestTime::addSeconds(10);
+        TestTime::addSeconds(9);
+        $this->artisan('queue:work --once');
+        Event::assertDispatched(WebhookCallFailedEvent::class, 1);
+
+        TestTime::addSeconds(1);
         $this->artisan('queue:work --once');
         Event::assertDispatched(WebhookCallFailedEvent::class, 2);
 
