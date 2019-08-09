@@ -1,6 +1,6 @@
 {
-    "name": "spatie/laravel-webhook-server",
-    "description": "Send webhooks in Laravel apps",
+    "name": "oliverbj/laravel-webhook-server",
+    "description": "Send webhooks in Laravel apps (Oliverbj forked)",
     "keywords": [
         "spatie",
         "laravel-webhook-server",
