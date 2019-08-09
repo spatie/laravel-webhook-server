@@ -1,6 +1,6 @@
 {
-    "name": "oliverbj/laravel-webhook-server",
-    "description": "Send webhooks in Laravel apps (Oliverbj forked)",
+    "name": "spatie/laravel-webhook-server",
+    "description": "Send webhooks in Laravel apps",
     "keywords": [
         "spatie",
         "laravel-webhook-server",
@@ -9,14 +9,12 @@
     ],
     "homepage": "https://github.com/spatie/laravel-webhook-server",
     "license": "MIT",
-    "authors": [
-        {
-            "name": "Freek Van der Herten",
-            "email": "freek@spatie.be",
-            "homepage": "https://spatie.be",
-            "role": "Developer"
-        }
-    ],
+    "authors": [{
+        "name": "Freek Van der Herten",
+        "email": "freek@spatie.be",
+        "homepage": "https://spatie.be",
+        "role": "Developer"
+    }],
     "require": {
         "php": "^7.3",
         "ext-json": "*",
