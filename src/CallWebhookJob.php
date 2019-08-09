@@ -57,6 +57,12 @@ class CallWebhookJob implements ShouldQueue
     /** @var \GuzzleHttp\Psr7\Response|null */
     private $response;
 
+    /** @var int|null */
+    private $responseStatusCode;
+
+    /** @var string */
+    private $responseBody;
+
     public function handle()
     {
         /** @var \GuzzleHttp\Client $client */
@@ -70,12 +76,15 @@ class CallWebhookJob implements ShouldQueue
                 'headers' => $this->headers,
             ]);
 
-            if (!Str::startsWith($this->response->getStatusCode(), 2)) {
+            $this->responseStatusCode = $this->response->getStatusCode();
+            $this->responseBody = $this->response->getBody()->getContents();
+
+            if (!Str::startsWith($this->responseStatusCode, 2)) {
                 throw new Exception('Webhook call failed');
             }
 
             $this->dispatchEvent(WebhookCallSucceededEvent::class);
-            
+
             return;
         } catch (Exception $exception) {
             /** @var \Spatie\WebhookServer\BackoffStrategy\BackoffStrategy $backoffStrategy */
@@ -106,6 +115,8 @@ class CallWebhookJob implements ShouldQueue
             $this->tags,
             $this->attempts(),
             $this->response,
+            $this->responseStatusCode,
+            $this->responseBody
         ));
     }
 
@@ -114,4 +125,3 @@ class CallWebhookJob implements ShouldQueue
         return $this->tags;
     }
 }
-

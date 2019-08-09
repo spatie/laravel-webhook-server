@@ -30,6 +30,12 @@ abstract class WebhookCallEvent
     /** @var \GuzzleHttp\Psr7\Response|null */
     public $response;
 
+    /** @var int */
+    public $responseStatusCode;
+
+    /** @var string */
+    public $responseBody;
+
     public function __construct(
         string $httpVerb,
         string $webhookUrl,
@@ -38,7 +44,9 @@ abstract class WebhookCallEvent
         array $meta,
         array $tags,
         int $attempt,
-        ?Response $response
+        ?Response $response,
+        ?int $responseStatusCode,
+        ?string $responseBody
     ) {
         $this->httpVerb = $httpVerb;
         $this->webhookUrl = $webhookUrl;
@@ -48,5 +56,7 @@ abstract class WebhookCallEvent
         $this->tags = $tags;
         $this->attempt = $attempt;
         $this->response = $response;
+        $this->responseStatusCode = $responseStatusCode;
+        $this->responseBody = $responseBody;
     }
 }
