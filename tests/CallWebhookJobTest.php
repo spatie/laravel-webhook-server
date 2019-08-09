@@ -9,6 +9,7 @@ use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
 use Spatie\WebhookServer\Tests\TestClasses\TestClient;
 use Spatie\WebhookServer\WebhookCall;
+use Spatie\WebhookServer\Events\WebhookCallSucceededEvent;
 
 class CallWebhookJobTest extends TestCase
 {
@@ -41,6 +42,18 @@ class CallWebhookJobTest extends TestCase
     }
 
     /** @test */
+    public function it_can_make_a_webhook_call_and_get_a_status_code_back()
+    {
+        $this->baseWebhook()->dispatch();
+
+        $this->artisan('queue:work --once');
+
+        Event::assertDispatched(WebhookCallSucceededEvent::class, function ($e) {
+            return is_numeric($e->responseStatusCode);
+        });
+    }
+
+    /** @test */
     public function it_can_use_a_different_http_verb()
     {
         $this
@@ -51,7 +64,6 @@ class CallWebhookJobTest extends TestCase
         $baseResponse = $this->baseRequest(['method' => 'get']);
 
         $this->artisan('queue:work --once');
-
 
         $this
             ->testClient
@@ -131,10 +143,10 @@ class CallWebhookJobTest extends TestCase
         $this->testClient->assertRequestCount(3);
     }
 
-    protected function baseWebhook(): WebhookCall
+    protected function baseWebhook($url = 'https://example.com/webhooks'): WebhookCall
     {
         return WebhookCall::create()
-            ->url('https://example.com/webhooks')
+            ->url($url)
             ->useSecret('abc')
             ->payload(['a' => 1]);
     }
@@ -158,4 +170,3 @@ class CallWebhookJobTest extends TestCase
         return array_merge($defaultProperties, $overrides);
     }
 }
-
