@@ -143,10 +143,10 @@ class CallWebhookJobTest extends TestCase
         $this->testClient->assertRequestCount(3);
     }
 
-    protected function baseWebhook($url = 'https://example.com/webhooks'): WebhookCall
+    protected function baseWebhook(): WebhookCall
     {
         return WebhookCall::create()
-            ->url($url)
+            ->url('https://example.com/webhooks')
             ->useSecret('abc')
             ->payload(['a' => 1]);
     }
