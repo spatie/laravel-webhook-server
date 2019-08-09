@@ -30,7 +30,7 @@ abstract class WebhookCallEvent
     /** @var \GuzzleHttp\Psr7\Response|null */
     public $response;
 
-    /** @var int */
+    /** @var int|null */
     public $responseStatusCode;
 
     /** @var string */
