@@ -5,7 +5,7 @@
 [![Quality Score](https://img.shields.io/scrutinizer/g/spatie/laravel-webhook-server.svg?style=flat-square)](https://scrutinizer-ci.com/g/spatie/laravel-webhook-server)
 [![Total Downloads](https://img.shields.io/packagist/dt/spatie/laravel-webhook-server.svg?style=flat-square)](https://packagist.org/packages/spatie/laravel-webhook-server)
 
-A webhook is a way for an app to provide information to another app about a particular event. The way the two apps communicate is with a simple HTTP request. 
+A webhook is a way for an app to provide information to another app about a particular event. The way the two apps communicate is with a simple HTTP request.
 
 This package allows you to configure and send webhooks in a Laravel app easily. It has support for [signing calls](https://github.com/spatie/laravel-webhook-server#how-signing-requests-works), [retrying calls and backoff strategies](https://github.com/spatie/laravel-webhook-server#retrying-failed-webhooks).
 
@@ -20,6 +20,7 @@ composer require spatie/laravel-webhook-server
 ```
 
 You can publish the config file with:
+
 ```bash
 php artisan vendor:publish --provider="Spatie\WebhookServer\WebhookServerServiceProvider"
 ```
@@ -94,7 +95,7 @@ WebhookCall::create()
    ->dispatch();
 ```
 
-This will send a post request to `https://other-app.com/webhooks`. The body of the request will be JSON encoded version of the array passed to `payload`. The request will have a header called `Signature` that will contain a signature the receiving app can use [to verify](https://github.com/spatie/laravel-webhook-server#how-signing-requests-works) the payload hasn't been tampered with. 
+This will send a post request to `https://other-app.com/webhooks`. The body of the request will be JSON encoded version of the array passed to `payload`. The request will have a header called `Signature` that will contain a signature the receiving app can use [to verify](https://github.com/spatie/laravel-webhook-server#how-signing-requests-works) the payload hasn't been tampered with.
 
 If the receiving app doesn't respond with a response code starting with `2`, the package will retry calling the webhook after 10 seconds. If that second attempt fails, the package will attempt to call the webhook a final time after 100 seconds. Should that attempt fail, the `FinalWebhookCallFailedEvent` will be raised.
 
@@ -108,7 +109,7 @@ By default, the package will add a header called `Signature` that will contain a
 // payload is the array passed to the `payload` method of the webhook
 // secret is the string given to the `signUsingSecret` method on the webhook.
 
-$payloadJson = json_encode($payload); 
+$payloadJson = json_encode($payload);
 
 $signature = hash_hmac('sha256', $payloadJson, $secret);
 ```
@@ -189,7 +190,6 @@ WebhookCall::create()
 
 Under the hood, the retrying of the webhook calls is implemented using [delayed dispatching](https://laravel.com/docs/master/queues#delayed-dispatching). Amazon SQS only has support for a small maximum delay. If you're using Amazon SQS for your queues, make sure you do not configure the package in a way so there are more than 15 minutes between each attempt.
 
-
 ### Customizing the HTTP verb
 
 By default, all webhooks will use the `post` method. You can customize that by specifying the HTTP verb you want in the `http_verb` key of the `webhook-server` config file.
@@ -244,7 +244,7 @@ WebhookCall::create()
 
 ### Adding tags
 
-If you're using [Laravel Horizon](https://laravel.com/docs/5.8/horizon) for your queues, you'll be happy to know that we support [tags](https://laravel.com/docs/5.8/horizon#tags). 
+If you're using [Laravel Horizon](https://laravel.com/docs/5.8/horizon) for your queues, you'll be happy to know that we support [tags](https://laravel.com/docs/5.8/horizon#tags).
 
 To add tags to the underlying job that'll perform the webhook call, simply specify them in the `tags` key of the `webhook-server` config file or use the `withTags` method:
 
@@ -258,24 +258,27 @@ WebhookCall::create()
 ### Events
 
 The package fires these events:
-- `WebhookCallSucceededEvent`: the remote app responded with a `2xx` response code.
-- `WebhookCallFailedEvent`: the remote app responded with a non `2xx` response code, or it did not respond at all
-- `FinalWebhookCallFailedEvent`: the final attempt to call the webhook failed.
+
+-   `WebhookCallSucceededEvent`: the remote app responded with a `2xx` response code.
+-   `WebhookCallFailedEvent`: the remote app responded with a non `2xx` response code, or it did not respond at all
+-   `FinalWebhookCallFailedEvent`: the final attempt to call the webhook failed.
 
 All these events have these properties:
 
-- `httpVerb`: the verb used to perform the request
-- `webhookUrl`: the URL to where the request was sent
-- `payload`: the used payload
-- `headers`: the headers that were sent. This array includes the signature header
-- `meta`: the array of values passed to the webhook with [the `meta` call](#adding-meta-information)
-- `tags`: the array of [tags](#adding-tags) used
-- `attempt`: the attempt number
-- `response`: the response returned by the remote app. Can be an instance of `\GuzzleHttp\Psr7\Response` or `null`.
+-   `httpVerb`: the verb used to perform the request
+-   `webhookUrl`: the URL to where the request was sent
+-   `payload`: the used payload
+-   `headers`: the headers that were sent. This array includes the signature header
+-   `meta`: the array of values passed to the webhook with [the `meta` call](#adding-meta-information)
+-   `tags`: the array of [tags](#adding-tags) used
+-   `attempt`: the attempt number
+-   `response`: the response returned by the remote app. Can be an instance of `\GuzzleHttp\Psr7\Response` or `null`.
+-   `responseCode`: the numeric status code from the HTTP request. Can be an instance `int` or `null`.
+-   `responseBody`: the response body content returned by the remote app. Will return a `string`
 
 ## Testing
 
-``` bash
+```bash
 composer test
 ```
 
@@ -301,14 +304,14 @@ We publish all received postcards [on our company website](https://spatie.be/en/
 
 ## Credits
 
-- [Freek Van der Herten](https://github.com/freekmurze)
-- [All Contributors](../../contributors)
+-   [Freek Van der Herten](https://github.com/freekmurze)
+-   [All Contributors](../../contributors)
 
 ## Support us
 
 Spatie is a web design agency based in Antwerp, Belgium. You'll find an overview of all our open source projects [on our website](https://spatie.be/opensource).
 
-Does your business depend on our contributions? Reach out and support us on [Patreon](https://www.patreon.com/spatie). 
+Does your business depend on our contributions? Reach out and support us on [Patreon](https://www.patreon.com/spatie).
 All pledges will be dedicated to allocating workforce on maintenance and new awesome stuff.
 
 ## License
