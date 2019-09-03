@@ -4,7 +4,9 @@ namespace Spatie\WebhookServer\Tests;
 
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Event;
+use Mockery\MockInterface;
 use Spatie\TestTime\TestTime;
+use Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy;
 use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
 use Spatie\WebhookServer\Tests\TestClasses\TestClient;
@@ -106,6 +108,13 @@ class CallWebhookJobTest extends TestCase
         $this->testClient->letEveryRequestFail();
 
         $this->baseWebhook()->dispatch();
+
+        $this->mock(ExponentialBackoffStrategy::class, function (MockInterface $mock) {
+            $mock->shouldReceive('waitInSecondsAfterAttempt')->withArgs([1])->once()->andReturns(10);
+            $mock->shouldReceive('waitInSecondsAfterAttempt')->withArgs([2])->once()->andReturns(100);
+            $mock->shouldReceive('waitInSecondsAfterAttempt')->withArgs([3])->never();
+            return $mock;
+        });
 
         $this->artisan('queue:work --once');
         Event::assertDispatched(WebhookCallFailedEvent::class, 1);
