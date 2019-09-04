@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 1.2.0 - 2019-09-04
+
+- add `getResponse`
+
 ## 1.1.0 - 2019-09-04
 
 - Add Laravel 6 support

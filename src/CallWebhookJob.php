@@ -100,6 +100,16 @@ class CallWebhookJob implements ShouldQueue
         }
     }
 
+    public function tags()
+    {
+        return $this->tags;
+    }
+
+    public function getResponse()
+    {
+        return $this->response;
+    }
+
     private function dispatchEvent(string $eventClass)
     {
         event(new $eventClass(
@@ -114,8 +124,5 @@ class CallWebhookJob implements ShouldQueue
         ));
     }
 
-    public function tags()
-    {
-        return $this->tags;
-    }
+
 }
