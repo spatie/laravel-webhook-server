@@ -30,4 +30,3 @@ class DefaultSignerTest extends TestCase
         );
     }
 }
-
