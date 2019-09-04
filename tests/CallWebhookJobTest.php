@@ -3,14 +3,14 @@
 namespace Spatie\WebhookServer\Tests;
 
 use GuzzleHttp\Client;
-use Illuminate\Support\Facades\Event;
 use Mockery\MockInterface;
 use Spatie\TestTime\TestTime;
-use Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy;
-use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
-use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
-use Spatie\WebhookServer\Tests\TestClasses\TestClient;
+use Illuminate\Support\Facades\Event;
 use Spatie\WebhookServer\WebhookCall;
+use Spatie\WebhookServer\Tests\TestClasses\TestClient;
+use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
+use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
+use Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy;
 
 class CallWebhookJobTest extends TestCase
 {
@@ -112,6 +112,7 @@ class CallWebhookJobTest extends TestCase
             $mock->shouldReceive('waitInSecondsAfterAttempt')->withArgs([1])->once()->andReturns(10);
             $mock->shouldReceive('waitInSecondsAfterAttempt')->withArgs([2])->once()->andReturns(100);
             $mock->shouldReceive('waitInSecondsAfterAttempt')->withArgs([3])->never();
+
             return $mock;
         });
 
@@ -149,6 +150,7 @@ class CallWebhookJobTest extends TestCase
         $this->artisan('queue:work --once');
         Event::assertDispatched(WebhookCallFailedEvent::class, function (WebhookCallFailedEvent $event) {
             $this->assertNotNull($event->response);
+
             return true;
         });
     }

@@ -2,10 +2,10 @@
 
 namespace Spatie\WebhookServer\Tests\TestClasses;
 
-use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Assert;
+use GuzzleHttp\Exception\RequestException;
 
 class TestClient
 {
