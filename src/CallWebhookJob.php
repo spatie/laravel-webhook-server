@@ -63,6 +63,8 @@ class CallWebhookJob implements ShouldQueue
         /** @var \GuzzleHttp\Client $client */
         $client = app(Client::class);
 
+        $lastAttempt = $this->attempts() >= $this->tries;
+
         try {
             $this->response = $client->request($this->httpVerb, $this->webhookUrl, [
                 'timeout' => $this->requestTimeout,
@@ -82,18 +84,23 @@ class CallWebhookJob implements ShouldQueue
             if ($exception instanceof RequestException) {
                $this->response = $exception->getResponse();
             }
+          
+            if (! $lastAttempt) {
+                /** @var \Spatie\WebhookServer\BackoffStrategy\BackoffStrategy $backoffStrategy */
+                $backoffStrategy = app($this->backoffStrategyClass);
 
             /** @var \Spatie\WebhookServer\BackoffStrategy\BackoffStrategy $backoffStrategy */
             $backoffStrategy = app($this->backoffStrategyClass);
 
-            $waitInSeconds = $backoffStrategy->waitInSecondsAfterAttempt($this->attempts());
+                $waitInSeconds = $backoffStrategy->waitInSecondsAfterAttempt($this->attempts());
+
+                $this->release($waitInSeconds);
+            }
 
             $this->dispatchEvent(WebhookCallFailedEvent::class);
-
-            $this->release($waitInSeconds);
         }
 
-        if ($this->attempts() >= $this->tries) {
+        if ($lastAttempt) {
             $this->dispatchEvent(FinalWebhookCallFailedEvent::class);
 
             $this->delete();
