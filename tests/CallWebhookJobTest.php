@@ -3,12 +3,12 @@
 namespace Spatie\WebhookServer\Tests;
 
 use GuzzleHttp\Client;
-use Illuminate\Support\Facades\Event;
 use Spatie\TestTime\TestTime;
-use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
-use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
-use Spatie\WebhookServer\Tests\TestClasses\TestClient;
+use Illuminate\Support\Facades\Event;
 use Spatie\WebhookServer\WebhookCall;
+use Spatie\WebhookServer\Tests\TestClasses\TestClient;
+use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
+use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
 
 class CallWebhookJobTest extends TestCase
 {
@@ -51,7 +51,6 @@ class CallWebhookJobTest extends TestCase
         $baseResponse = $this->baseRequest(['method' => 'get']);
 
         $this->artisan('queue:work --once');
-
 
         $this
             ->testClient
@@ -172,4 +171,3 @@ class CallWebhookJobTest extends TestCase
         return array_merge($defaultProperties, $overrides);
     }
 }
-
