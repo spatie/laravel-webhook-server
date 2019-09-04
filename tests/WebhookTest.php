@@ -2,8 +2,8 @@
 
 namespace Spatie\WebhookServer\Tests;
 
-use Spatie\WebhookServer\WebhookCall;
 use Illuminate\Support\Facades\Queue;
+use Spatie\WebhookServer\WebhookCall;
 use Spatie\WebhookServer\CallWebhookJob;
 use Spatie\WebhookServer\Exceptions\InvalidSigner;
 use Spatie\WebhookServer\Exceptions\CouldNotCallWebhook;
