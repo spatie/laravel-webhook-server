@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 1.3.0 - 2019-09-04
+
+- do not release job on last attempt
+
 ## 1.2.0 - 2019-09-04
 
 - add `getResponse`
