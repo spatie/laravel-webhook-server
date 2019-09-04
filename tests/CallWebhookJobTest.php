@@ -130,6 +130,20 @@ class CallWebhookJobTest extends TestCase
         $this->testClient->assertRequestCount(3);
     }
 
+    /** @test */
+    public function it_sets_the_response_field_on_request_failure()
+    {
+        $this->testClient->throwRequestException();
+
+        $this->baseWebhook()->dispatch();
+
+        $this->artisan('queue:work --once');
+        Event::assertDispatched(WebhookCallFailedEvent::class, function (WebhookCallFailedEvent $event) {
+            $this->assertNotNull($event->response);
+            return true;
+        });
+    }
+
     protected function baseWebhook(): WebhookCall
     {
         return WebhookCall::create()
