@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 1.1.0 - 2019-09-04
+
+- Add Laravel 6 support
+
 ## 1.0.5 - 2019-07-24
 
 - avoid sending unsuccessfull event when the final try of a job succeeds

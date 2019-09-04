@@ -21,12 +21,12 @@
         "php": "^7.3",
         "ext-json": "*",
         "guzzlehttp/guzzle": "^6.3",
-        "illuminate/bus": "^5.8",
-        "illuminate/queue": "^5.8",
-        "illuminate/support": "^5.8"
+        "illuminate/bus": "^5.8|^6.0",
+        "illuminate/queue": "^5.8|^6.0",
+        "illuminate/support": "^5.8|^6.0"
     },
     "require-dev": {
-        "orchestra/testbench": "^3.8",
+        "orchestra/testbench": "^3.8|^4.0",
         "phpunit/phpunit": "^8.2",
         "spatie/test-time": "^1.0"
     },
