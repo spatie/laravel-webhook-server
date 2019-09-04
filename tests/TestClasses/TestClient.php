@@ -2,6 +2,8 @@
 
 namespace Spatie\WebhookServer\Tests\TestClasses;
 
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Assert;
 
@@ -11,9 +13,19 @@ class TestClient
 
     private $useResponseCode = 200;
 
+    private $throwRequestException = false;
+
     public function request(string $method, string $url, array $options)
     {
         $this->requests[] = compact('method', 'url', 'options');
+
+        if ($this->throwRequestException) {
+            throw new RequestException(
+                'Request failed exception',
+                new Request($method, $url),
+                new Response(500)
+            );
+        }
 
         return new Response($this->useResponseCode);
     }
@@ -39,5 +51,10 @@ class TestClient
     public function letEveryRequestFail()
     {
         $this->useResponseCode = 500;
+    }
+
+    public function throwRequestException()
+    {
+        $this->throwRequestException = true;
     }
 }

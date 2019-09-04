@@ -28,7 +28,7 @@ return [
      * These are the headers that will be added to all webhook requests.
      */
     'headers' => [
-       'Content-Type' => 'application/json'
+       'Content-Type' => 'application/json',
     ],
 
     /*

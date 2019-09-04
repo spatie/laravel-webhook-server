@@ -10,7 +10,11 @@ use Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy;
 use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
 use Spatie\WebhookServer\Tests\TestClasses\TestClient;
+use Illuminate\Support\Facades\Event;
 use Spatie\WebhookServer\WebhookCall;
+use Spatie\WebhookServer\Tests\TestClasses\TestClient;
+use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
+use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
 
 class CallWebhookJobTest extends TestCase
 {
@@ -53,7 +57,6 @@ class CallWebhookJobTest extends TestCase
         $baseResponse = $this->baseRequest(['method' => 'get']);
 
         $this->artisan('queue:work --once');
-
 
         $this
             ->testClient
@@ -140,6 +143,20 @@ class CallWebhookJobTest extends TestCase
         $this->testClient->assertRequestCount(3);
     }
 
+    /** @test */
+    public function it_sets_the_response_field_on_request_failure()
+    {
+        $this->testClient->throwRequestException();
+
+        $this->baseWebhook()->dispatch();
+
+        $this->artisan('queue:work --once');
+        Event::assertDispatched(WebhookCallFailedEvent::class, function (WebhookCallFailedEvent $event) {
+            $this->assertNotNull($event->response);
+            return true;
+        });
+    }
+
     protected function baseWebhook(): WebhookCall
     {
         return WebhookCall::create()
@@ -167,4 +184,3 @@ class CallWebhookJobTest extends TestCase
         return array_merge($defaultProperties, $overrides);
     }
 }
-
