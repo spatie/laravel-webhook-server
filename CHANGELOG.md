@@ -2,6 +2,18 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 1.3.1 - 2019-09-05
+
+- remove duplicate line
+
+## 1.3.0 - 2019-09-04
+
+- do not release job on last attempt
+
+## 1.2.0 - 2019-09-04
+
+- add `getResponse`
+
 ## 1.1.0 - 2019-09-04
 
 - Add Laravel 6 support

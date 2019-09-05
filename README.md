@@ -3,6 +3,7 @@
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/spatie/laravel-webhook-server.svg?style=flat-square)](https://packagist.org/packages/spatie/laravel-webhook-server)
 [![Build Status](https://img.shields.io/travis/spatie/laravel-webhook-server/master.svg?style=flat-square)](https://travis-ci.org/spatie/laravel-webhook-server)
 [![Quality Score](https://img.shields.io/scrutinizer/g/spatie/laravel-webhook-server.svg?style=flat-square)](https://scrutinizer-ci.com/g/spatie/laravel-webhook-server)
+[![StyleCI](https://github.styleci.io/repos/191252974/shield?branch=master)](https://github.styleci.io/repos/191252974)
 [![Total Downloads](https://img.shields.io/packagist/dt/spatie/laravel-webhook-server.svg?style=flat-square)](https://packagist.org/packages/spatie/laravel-webhook-server)
 
 A webhook is a way for an app to provide information to another app about a particular event. The way the two apps communicate is with a simple HTTP request. 

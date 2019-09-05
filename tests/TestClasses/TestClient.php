@@ -2,8 +2,15 @@
 
 namespace Spatie\WebhookServer\Tests\TestClasses;
 
+use GuzzleHttp\Exception\BadResponseException;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\SeekException;
+use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
+use mysql_xdevapi\Exception;
 use PHPUnit\Framework\Assert;
+use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\RequestException;
 
 class TestClient
 {
@@ -11,9 +18,28 @@ class TestClient
 
     private $useResponseCode = 200;
 
+    private $throwRequestException = false;
+
+    private $throwConnectionException = false;
+
     public function request(string $method, string $url, array $options)
     {
         $this->requests[] = compact('method', 'url', 'options');
+
+        if ($this->throwRequestException) {
+            throw new RequestException(
+                'Request failed exception',
+                new Request($method, $url),
+                new Response(500)
+            );
+        }
+
+        if ($this->throwConnectionException) {
+			throw new ConnectException(
+				'Request timeout',
+				new Request($method, $url),
+			);
+		}
 
         return new Response($this->useResponseCode);
     }
@@ -40,4 +66,14 @@ class TestClient
     {
         $this->useResponseCode = 500;
     }
+
+    public function throwRequestException()
+    {
+        $this->throwRequestException = true;
+    }
+
+    public function throwConnectionException()
+	{
+		$this->throwConnectionException = true;
+	}
 }

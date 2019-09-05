@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
+use GuzzleHttp\Exception\RequestException;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
@@ -57,20 +58,28 @@ class CallWebhookJob implements ShouldQueue
     /** @var \GuzzleHttp\Psr7\Response|null */
     private $response;
 
+    /**	@var string */
+    private $errorType;
+
+	/**	@var string */
+	private $errorMessage;
+
+
     public function handle()
     {
         /** @var \GuzzleHttp\Client $client */
         $client = app(Client::class);
 
-        try {
-            $this->response = $client->request($this->httpVerb, $this->webhookUrl, [
+        $lastAttempt = $this->attempts() >= $this->tries;
+
+		try {
+			$this->response = $client->request($this->httpVerb, $this->webhookUrl, [
                 'timeout' => $this->requestTimeout,
                 'body' => json_encode($this->payload),
                 'verify' => $this->verifySsl,
                 'headers' => $this->headers,
             ]);
-
-            if (! Str::startsWith($this->response->getStatusCode(), 2)) {
+			if (! Str::startsWith($this->response->getStatusCode(), 2)) {
                 throw new Exception('Webhook call failed');
             }
 
@@ -78,21 +87,39 @@ class CallWebhookJob implements ShouldQueue
 
             return;
         } catch (Exception $exception) {
-            /** @var \Spatie\WebhookServer\BackoffStrategy\BackoffStrategy $backoffStrategy */
-            $backoffStrategy = app($this->backoffStrategyClass);
+			if ($exception instanceof RequestException) {
+				$this->response = $exception->getResponse();
+				$this->errorType = get_class($exception);
+				$this->errorMessage = $exception->getMessage();
+			}
 
-            $waitInSeconds = $backoffStrategy->waitInSecondsAfterAttempt($this->attempts());
+            if (! $lastAttempt) {
+                /** @var \Spatie\WebhookServer\BackoffStrategy\BackoffStrategy $backoffStrategy */
+                $backoffStrategy = app($this->backoffStrategyClass);
 
-            $this->dispatchEvent(WebhookCallFailedEvent::class);
+				$waitInSeconds = $backoffStrategy->waitInSecondsAfterAttempt($this->attempts());
 
-            $this->release($waitInSeconds);
-        }
+				$this->release($waitInSeconds);
+            }
 
-        if ($this->attempts() >= $this->tries) {
+			$this->dispatchEvent(WebhookCallFailedEvent::class);
+		}
+
+        if ($lastAttempt) {
             $this->dispatchEvent(FinalWebhookCallFailedEvent::class);
 
             $this->delete();
         }
+    }
+
+    public function tags()
+    {
+        return $this->tags;
+    }
+
+    public function getResponse()
+    {
+        return $this->response;
     }
 
     private function dispatchEvent(string $eventClass)
@@ -106,11 +133,8 @@ class CallWebhookJob implements ShouldQueue
             $this->tags,
             $this->attempts(),
             $this->response,
+			$this->errorType,
+			$this->errorMessage
         ));
-    }
-
-    public function tags()
-    {
-        return $this->tags;
     }
 }
