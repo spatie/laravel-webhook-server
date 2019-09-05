@@ -155,6 +155,21 @@ class CallWebhookJobTest extends TestCase
         });
     }
 
+	/** @test */
+	public function it_sets_the_error_fields_on_connection_failure()
+	{
+		$this->testClient->throwConnectionException();
+
+		$this->baseWebhook()->dispatch();
+
+		$this->artisan('queue:work --once');
+		Event::assertDispatched(WebhookCallFailedEvent::class, function (WebhookCallFailedEvent $event) {
+			$this->assertNotNull($event->errorType);
+			$this->assertNotNull($event->errorMessage);
+			return true;
+		});
+	}
+
     protected function baseWebhook(): WebhookCall
     {
         return WebhookCall::create()

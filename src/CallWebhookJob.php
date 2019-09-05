@@ -58,6 +58,12 @@ class CallWebhookJob implements ShouldQueue
     /** @var \GuzzleHttp\Psr7\Response|null */
     private $response;
 
+	/**	@var string */
+	private $errorType;
+
+	/**	@var string */
+	private $errorMessage;
+
     public function handle()
     {
         /** @var \GuzzleHttp\Client $client */
@@ -83,6 +89,8 @@ class CallWebhookJob implements ShouldQueue
         } catch (Exception $exception) {
             if ($exception instanceof RequestException) {
                 $this->response = $exception->getResponse();
+				$this->errorType = get_class($exception);
+				$this->errorMessage = $exception->getMessage();
             }
 
             if (! $lastAttempt) {
@@ -125,6 +133,8 @@ class CallWebhookJob implements ShouldQueue
             $this->tags,
             $this->attempts(),
             $this->response,
+			$this->errorType,
+			$this->errorMessage
         ));
     }
 }
