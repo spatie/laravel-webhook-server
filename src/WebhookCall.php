@@ -62,6 +62,13 @@ class WebhookCall
         return $this;
     }
 
+    public function onConnection(string $connection)
+    {
+        $this->callWebhookJob->connection = $connection;
+
+        return $this;
+    }
+
     public function onQueue(string $queue)
     {
         $this->callWebhookJob->queue = $queue;
