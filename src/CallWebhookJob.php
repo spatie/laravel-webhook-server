@@ -2,6 +2,7 @@
 
 namespace Spatie\WebhookServer;
 
+use GuzzleHttp\Psr7\Response;
 use Exception;
 use GuzzleHttp\Client;
 use Illuminate\Support\Str;
@@ -19,50 +20,36 @@ class CallWebhookJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /** @var string */
-    public $webhookUrl;
+    public ?string $webhookUrl = null;
+
+    public string $httpVerb;
+
+    public int $tries;
+
+    public int $requestTimeout;
+
+    public string $backoffStrategyClass;
+
+    public ?string $signerClass = null;
+
+    public array $headers = [];
+
+    public bool $verifySsl;
 
     /** @var string */
-    public $httpVerb;
+    public  $queue;
 
-    /** @var int */
-    public $tries;
+    public array $payload = [];
 
-    /** @var int */
-    public $requestTimeout;
+    public array $meta = [];
 
-    /** @var string */
-    public $backoffStrategyClass;
+    public array $tags = [];
 
-    /** @var string */
-    public $signerClass;
+    private ?Response $response = null;
 
-    /** @var array */
-    public $headers = [];
+    private ?string $errorType = null;
 
-    /** @var bool */
-    public $verifySsl;
-
-    /** @var string */
-    public $queue;
-
-    /** @var array */
-    public $payload = [];
-
-    /** @var array */
-    public $meta = [];
-
-    /** @var array */
-    public $tags = [];
-
-    /** @var \GuzzleHttp\Psr7\Response|null */
-    private $response;
-
-    /** @var string */
-    private $errorType;
-
-    /** @var string */
-    private $errorMessage;
+    private ?string $errorMessage = null;
 
     public function handle()
     {

@@ -14,8 +14,7 @@ use Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy;
 
 class CallWebhookJobTest extends TestCase
 {
-    /** @var \Spatie\WebhookServer\Tests\TestClasses\TestClient */
-    private $testClient;
+    private TestClient $testClient;
 
     public function setUp(): void
     {

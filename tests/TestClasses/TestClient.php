@@ -10,13 +10,13 @@ use GuzzleHttp\Exception\RequestException;
 
 class TestClient
 {
-    private $requests = [];
+    private array $requests = [];
 
-    private $useResponseCode = 200;
+    private int $useResponseCode = 200;
 
-    private $throwRequestException = false;
+    private bool $throwRequestException = false;
 
-    private $throwConnectionException = false;
+    private bool $throwConnectionException = false;
 
     public function request(string $method, string $url, array $options)
     {

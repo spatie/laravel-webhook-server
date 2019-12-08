@@ -10,20 +10,15 @@ use Spatie\WebhookServer\Exceptions\InvalidBackoffStrategy;
 
 class WebhookCall
 {
-    /** @var \Spatie\WebhookServer\CallWebhookJob */
-    protected $callWebhookJob;
+    protected CallWebhookJob $callWebhookJob;
 
-    /** @var string */
-    protected $secret;
+    protected string $secret;
 
-    /** @var \Spatie\WebhookServer\Signer\Signer */
-    protected $signer;
+    protected Signer $signer;
 
-    /** @var array */
-    protected $headers = [];
+    protected array $headers = [];
 
-    /** @var array */
-    private $payload = [];
+    private array $payload = [];
 
     public static function create(): self
     {
