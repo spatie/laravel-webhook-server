@@ -99,39 +99,6 @@ This will send a post request to `https://other-app.com/webhooks`. The body of t
 
 If the receiving app doesn't respond with a response code starting with `2`, the package will retry calling the webhook after 10 seconds. If that second attempt fails, the package will attempt to call the webhook a final time after 100 seconds. Should that attempt fail, the `FinalWebhookCallFailedEvent` will be raised.
 
-### Exception handling
-It is important to note that this library does not record exceptions in the log file, by default. Thrown exceptions are handled by a `catch`, which in fire the `WebhookCallFailedEvent` event.
-
-So, to handle exceptions you need to create listeners for the `WebhookCallFailedEvent` and/or `FinalWebhookCallFailedEvent` events.
-
-Perhaps in your implementation, you will be able to identify whether a webhook has failed, but in most cases, if you do not implement a listener, you will never know that something went wrong.
-
-Here is a simple example of how you can listen to the `WebhookCallFailedEvent` and/or `FinalWebhookCallFailedEvent` events:
-1. In app/Providers/EventServiceProvider.php:
-```php
-$listen = [
-    ...
-    WebhookCallFailedEvent::class => [
-        "App\Listeners\EventListener"
-    ],
-    ...
-];
-```
-2. In app/Listeners/EventListener.php:
-```php
-<?php
-namespace App\Listeners;
-
-class EventListener
-{
-    public function handle($event) {
-        if (getClassShortName(get_class($event)) == 'WebhookCallFailedEvent')
-            if ($event->errorType)
-                throw new \Exception($event->errorMessage);
-    }
-}
-```
-
 ### How signing requests works
 
 When setting up, it's common to generate, store, and share a secret between your app and the app that wants to receive webhooks. Generating the secret could be done with `Illuminate\Support\Str::random()`, but it's entirely up to you. The package will use the secret to sign a webhook call.
@@ -288,6 +255,11 @@ WebhookCall::create()
     ...
     ->dispatch();
 ```
+
+### Exception handling
+By default, the package will not log any exceptions that are thrown when sending a webhook.
+
+To handle exceptions you need to create listen for the `Spatie\WebhookServer\Events\WebhookCallFailedEvent` and/or `Spatie\WebhookServer\Events|FinalWebhookCallFailedEvent` events.
 
 ### Events
 
