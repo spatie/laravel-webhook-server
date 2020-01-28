@@ -74,8 +74,6 @@ class CallWebhookJob implements ShouldQueue
 
             return;
         } catch (Exception $exception) {
-            report($exception);
-
             if ($exception instanceof RequestException) {
                 $this->response = $exception->getResponse();
                 $this->errorType = get_class($exception);
