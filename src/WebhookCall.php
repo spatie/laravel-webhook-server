@@ -2,11 +2,11 @@
 
 namespace Spatie\WebhookServer;
 
-use Spatie\WebhookServer\Signer\Signer;
-use Spatie\WebhookServer\Exceptions\InvalidSigner;
-use Spatie\WebhookServer\Exceptions\CouldNotCallWebhook;
 use Spatie\WebhookServer\BackoffStrategy\BackoffStrategy;
+use Spatie\WebhookServer\Exceptions\CouldNotCallWebhook;
 use Spatie\WebhookServer\Exceptions\InvalidBackoffStrategy;
+use Spatie\WebhookServer\Exceptions\InvalidSigner;
+use Spatie\WebhookServer\Signer\Signer;
 
 class WebhookCall
 {

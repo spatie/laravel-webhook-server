@@ -3,14 +3,14 @@
 namespace Spatie\WebhookServer\Tests;
 
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Event;
 use Mockery\MockInterface;
 use Spatie\TestTime\TestTime;
-use Illuminate\Support\Facades\Event;
-use Spatie\WebhookServer\WebhookCall;
-use Spatie\WebhookServer\Tests\TestClasses\TestClient;
-use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
-use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
 use Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy;
+use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
+use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
+use Spatie\WebhookServer\Tests\TestClasses\TestClient;
+use Spatie\WebhookServer\WebhookCall;
 
 class CallWebhookJobTest extends TestCase
 {
