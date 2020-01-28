@@ -2,8 +2,8 @@
 
 namespace Spatie\WebhookServer\Tests;
 
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 use Orchestra\Testbench\TestCase as Orchestra;
 use Spatie\WebhookServer\WebhookServerServiceProvider;
 
