@@ -262,6 +262,11 @@ WebhookCall::create()
     ->dispatch();
 ```
 
+### Exception handling
+By default, the package will not log any exceptions that are thrown when sending a webhook.
+
+To handle exceptions you need to create listen for the `Spatie\WebhookServer\Events\WebhookCallFailedEvent` and/or `Spatie\WebhookServer\Events|FinalWebhookCallFailedEvent` events.
+
 ### Events
 
 The package fires these events:

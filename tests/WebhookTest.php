@@ -3,11 +3,11 @@
 namespace Spatie\WebhookServer\Tests;
 
 use Illuminate\Support\Facades\Queue;
-use Spatie\WebhookServer\WebhookCall;
 use Spatie\WebhookServer\CallWebhookJob;
-use Spatie\WebhookServer\Exceptions\InvalidSigner;
 use Spatie\WebhookServer\Exceptions\CouldNotCallWebhook;
 use Spatie\WebhookServer\Exceptions\InvalidBackoffStrategy;
+use Spatie\WebhookServer\Exceptions\InvalidSigner;
+use Spatie\WebhookServer\WebhookCall;
 
 class WebhookTest extends TestCase
 {
