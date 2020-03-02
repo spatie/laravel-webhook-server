@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 1.6.0 - 2020-03-02
+
+- add support for Laravel 7
+
 ## 1.5.0 - 2019-12-08
 
 - drop support for PHP 7.3

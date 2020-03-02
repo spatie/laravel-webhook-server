@@ -10,10 +10,12 @@ jobs:
       fail-fast: true
       matrix:
         php: [7.4]
-        laravel: [6.*, 5.8.*]
+        laravel: [7.*, 6.*, 5.8.*]
         os: [ubuntu-latest, windows-latest]
         dependency-version: [prefer-lowest, prefer-stable]
         include:
+          - laravel: 7.*
+            testbench: 5.*
           - laravel: 6.*
             testbench: 4.*
           - laravel: 5.8.*
