@@ -55,5 +55,7 @@
                 "Spatie\\WebhookServer\\WebhookServerServiceProvider"
             ]
         }
-    }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
