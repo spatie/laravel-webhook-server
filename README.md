@@ -105,6 +105,17 @@ This will send a post request to `https://other-app.com/webhooks`. The body of t
 
 If the receiving app doesn't respond with a response code starting with `2`, the package will retry calling the webhook after 10 seconds. If that second attempt fails, the package will attempt to call the webhook a final time after 100 seconds. Should that attempt fail, the `FinalWebhookCallFailedEvent` will be raised.
 
+### Send webhook synchronously
+
+If you would like to call the webhook immediately (synchronously), you may use the dispatchNow method. When using this method, the webhook will not be queued and will be run immediately. This can be helpfull in situation where sending the webhook is part of a bigger job that already has been queued.
+
+```php
+WebhookCall::create()
+   ...
+   ->dispatchNow();
+```
+
+
 ### How signing requests works
 
 When setting up, it's common to generate, store, and share a secret between your app and the app that wants to receive webhooks. Generating the secret could be done with `Illuminate\Support\Str::random()`, but it's entirely up to you. The package will use the secret to sign a webhook call.
