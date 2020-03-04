@@ -151,6 +151,13 @@ class WebhookCall
 
     public function dispatch(): void
     {
+        $this->prepareForDispatch();
+
+        dispatch($this->callWebhookJob);
+    }
+
+    protected function prepareForDispatch(): void
+    {
         if (! $this->callWebhookJob->webhookUrl) {
             throw CouldNotCallWebhook::urlNotSet();
         }
@@ -160,8 +167,6 @@ class WebhookCall
         }
 
         $this->callWebhookJob->headers = $this->getAllHeaders();
-
-        dispatch($this->callWebhookJob);
     }
 
     protected function getAllHeaders(): array
