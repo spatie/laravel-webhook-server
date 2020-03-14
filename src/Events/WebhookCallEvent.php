@@ -9,31 +9,22 @@ abstract class WebhookCallEvent
     /** @var string */
     public string $httpVerb;
 
-    /** @var string */
     public string $webhookUrl;
 
-    /** @var array */
     public array $payload;
 
-    /** @var array */
     public array $headers;
 
-    /** @var array */
     public array $meta;
 
-    /** @var array */
     public array $tags;
 
-    /** @var int */
     public int $attempt;
 
-    /** @var \GuzzleHttp\Psr7\Response|null */
     public ?Response $response;
 
-    /** @var string */
     public ?string $errorType;
 
-    /** @var string */
     public ?string $errorMessage;
 
     public function __construct(
