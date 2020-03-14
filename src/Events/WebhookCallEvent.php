@@ -6,7 +6,6 @@ use GuzzleHttp\Psr7\Response;
 
 abstract class WebhookCallEvent
 {
-    /** @var string */
     public string $httpVerb;
 
     public string $webhookUrl;
