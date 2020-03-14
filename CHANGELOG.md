@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 1.7.0 - 2020-03-05
+
+- add `dispatchNow` (#39)
+
 ## 1.6.0 - 2020-03-02
 
 - add support for Laravel 7

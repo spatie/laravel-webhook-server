@@ -42,6 +42,16 @@ class CallWebhookJobTest extends TestCase
     }
 
     /** @test */
+    public function it_can_make_a_synchronous_webhook_call()
+    {
+        $this->baseWebhook()->dispatchNow();
+
+        $this
+            ->testClient
+            ->assertRequestsMade([$this->baseRequest()]);
+    }
+
+    /** @test */
     public function it_can_use_a_different_http_verb()
     {
         $this
