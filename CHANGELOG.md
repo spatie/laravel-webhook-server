@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 1.8.0 - 2020-03-18
+
+- add `uuid`
+
 ## 1.7.0 - 2020-03-05
 
 - add `dispatchNow` (#39)

@@ -45,6 +45,8 @@ class CallWebhookJob implements ShouldQueue
 
     public array $tags = [];
 
+    public string $uuid = '';
+
     private ?Response $response = null;
 
     private ?string $errorType = null;
@@ -121,7 +123,8 @@ class CallWebhookJob implements ShouldQueue
             $this->attempts(),
             $this->response,
             $this->errorType,
-            $this->errorMessage
+            $this->errorMessage,
+            $this->uuid
         ));
     }
 }

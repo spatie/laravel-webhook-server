@@ -2,6 +2,7 @@
 
 namespace Spatie\WebhookServer;
 
+use Illuminate\Support\Str;
 use Spatie\WebhookServer\BackoffStrategy\BackoffStrategy;
 use Spatie\WebhookServer\Exceptions\CouldNotCallWebhook;
 use Spatie\WebhookServer\Exceptions\InvalidBackoffStrategy;
@@ -11,6 +12,8 @@ use Spatie\WebhookServer\Signer\Signer;
 class WebhookCall
 {
     protected CallWebhookJob $callWebhookJob;
+
+    protected string $uuid = '';
 
     protected string $secret;
 
@@ -25,6 +28,7 @@ class WebhookCall
         $config = config('webhook-server');
 
         return (new static())
+            ->uuid(Str::uuid())
             ->onQueue($config['queue'])
             ->useHttpVerb($config['http_verb'])
             ->maximumTries($config['tries'])
@@ -41,14 +45,14 @@ class WebhookCall
         $this->callWebhookJob = app(CallWebhookJob::class);
     }
 
-    public function url(string $url)
+    public function url(string $url): self
     {
         $this->callWebhookJob->webhookUrl = $url;
 
         return $this;
     }
 
-    public function payload(array $payload)
+    public function payload(array $payload): self
     {
         $this->payload = $payload;
 
@@ -57,35 +61,42 @@ class WebhookCall
         return $this;
     }
 
-    public function onQueue(string $queue)
+    public function uuid(string $uuid): self
+    {
+        $this->uuid = $uuid;
+
+        return $this;
+    }
+
+    public function onQueue(string $queue): self
     {
         $this->callWebhookJob->queue = $queue;
 
         return $this;
     }
 
-    public function useSecret(string $secret)
+    public function useSecret(string $secret): self
     {
         $this->secret = $secret;
 
         return $this;
     }
 
-    public function useHttpVerb(string $verb)
+    public function useHttpVerb(string $verb): self
     {
         $this->callWebhookJob->httpVerb = $verb;
 
         return $this;
     }
 
-    public function maximumTries(int $tries)
+    public function maximumTries(int $tries): self
     {
         $this->callWebhookJob->tries = $tries;
 
         return $this;
     }
 
-    public function useBackoffStrategy(string $backoffStrategyClass)
+    public function useBackoffStrategy(string $backoffStrategyClass): self
     {
         if (! is_subclass_of($backoffStrategyClass, BackoffStrategy::class)) {
             throw InvalidBackoffStrategy::doesNotExtendBackoffStrategy($backoffStrategyClass);
@@ -96,14 +107,14 @@ class WebhookCall
         return $this;
     }
 
-    public function timeoutInSeconds(int $timeoutInSeconds)
+    public function timeoutInSeconds(int $timeoutInSeconds): self
     {
         $this->callWebhookJob->requestTimeout = $timeoutInSeconds;
 
         return $this;
     }
 
-    public function signUsing(string $signerClass)
+    public function signUsing(string $signerClass): self
     {
         if (! is_subclass_of($signerClass, Signer::class)) {
             throw InvalidSigner::doesImplementSigner($signerClass);
@@ -114,35 +125,35 @@ class WebhookCall
         return $this;
     }
 
-    public function withHeaders(array $headers)
+    public function withHeaders(array $headers): self
     {
         $this->headers = $headers;
 
         return $this;
     }
 
-    public function verifySsl(bool $verifySsl = true)
+    public function verifySsl(bool $verifySsl = true): self
     {
         $this->callWebhookJob->verifySsl = $verifySsl;
 
         return $this;
     }
 
-    public function doNotVerifySsl()
+    public function doNotVerifySsl(): self
     {
         $this->verifySsl(false);
 
         return $this;
     }
 
-    public function meta(array $meta)
+    public function meta(array $meta): self
     {
         $this->callWebhookJob->meta = $meta;
 
         return $this;
     }
 
-    public function withTags(array $tags)
+    public function withTags(array $tags): self
     {
         $this->callWebhookJob->tags = $tags;
 

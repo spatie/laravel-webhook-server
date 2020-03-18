@@ -26,6 +26,8 @@ abstract class WebhookCallEvent
 
     public ?string $errorMessage;
 
+    public string $uuid;
+
     public function __construct(
         string $httpVerb,
         string $webhookUrl,
@@ -36,7 +38,8 @@ abstract class WebhookCallEvent
         int $attempt,
         ?Response $response,
         ?string $errorType,
-        ?string $errorMessage
+        ?string $errorMessage,
+        string $uuid
     ) {
         $this->httpVerb = $httpVerb;
         $this->webhookUrl = $webhookUrl;
@@ -48,5 +51,6 @@ abstract class WebhookCallEvent
         $this->response = $response;
         $this->errorType = $errorType;
         $this->errorMessage = $errorMessage;
+        $this->uuid = $uuid;
     }
 }

@@ -295,6 +295,7 @@ All these events have these properties:
 - `tags`: the array of [tags](#adding-tags) used
 - `attempt`: the attempt number
 - `response`: the response returned by the remote app. Can be an instance of `\GuzzleHttp\Psr7\Response` or `null`.
+- `uuid`: a unique string to identify this call. This uuid will be the same for all attempts of a webhook call.
 
 ## Testing
 
