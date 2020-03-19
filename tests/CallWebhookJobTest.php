@@ -96,6 +96,24 @@ class CallWebhookJobTest extends TestCase
     }
 
     /** @test */
+    public function it_will_not_set_a_signature_header_when_the_request_should_not_be_signed()
+    {
+        $this->baseWebhook()
+            ->doNotSign()
+            ->dispatch();
+
+        $baseRequest = $this->baseRequest();
+
+        unset($baseRequest['options']['headers']['Signature']);
+
+        $this->artisan('queue:work --once');
+
+        $this
+            ->testClient
+            ->assertRequestsMade([$baseRequest]);
+    }
+
+    /** @test */
     public function it_can_disable_verifying_ssl()
     {
         $this->baseWebhook()->doNotVerifySsl()->dispatch();

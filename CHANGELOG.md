@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 1.9.0 - 2020-03-19
+
+- add `doNotSign`
+
 ## 1.8.1 - 2020-03-19
 
 - fix `uuid`

@@ -23,6 +23,8 @@ class WebhookCall
 
     private array $payload = [];
 
+    private $signWebhook = true;
+
     public static function create(): self
     {
         $config = config('webhook-server');
@@ -127,6 +129,13 @@ class WebhookCall
         return $this;
     }
 
+    public function doNotSign(): self
+    {
+        $this->signWebhook = false;
+
+        return $this;
+    }
+
     public function withHeaders(array $headers): self
     {
         $this->headers = $headers;
@@ -182,7 +191,7 @@ class WebhookCall
             throw CouldNotCallWebhook::urlNotSet();
         }
 
-        if (empty($this->secret)) {
+        if ($this->signWebhook && empty($this->secret)) {
             throw CouldNotCallWebhook::secretNotSet();
         }
 
@@ -192,6 +201,10 @@ class WebhookCall
     protected function getAllHeaders(): array
     {
         $headers = $this->headers;
+
+        if (! $this->signWebhook) {
+            return $headers;
+        }
 
         $signature = $this->signer->calculateSignature($this->payload, $this->secret);
 

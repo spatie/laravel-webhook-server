@@ -131,6 +131,19 @@ $payloadJson = json_encode($payload);
 $signature = hash_hmac('sha256', $payloadJson, $secret);
 ```
 
+### Skip signing request
+
+We don't recommend this, but if you don't want the web hook request to be signed call the `doNotSign` method.
+
+```php
+WebhookCall::create()
+   ->doNotSign()
+    ...
+```
+
+By calling this method, the `Signature` header will not be set.
+
+
 ### Customizing signing requests
 
 If you want to customize the signing process, you can create your own custom signer. A signer is any class that implements `Spatie\WebhookServer\Signer`.

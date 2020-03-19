@@ -59,6 +59,14 @@ class WebhookTest extends TestCase
     }
 
     /** @test */
+    public function it_will_not_throw_an_exception_if_there_is_not_secret_and_the_request_should_not_be_signed()
+    {
+        WebhookCall::create()->doNotSign()->url('https://localhost')->dispatch();
+
+        $this->assertTrue(true);
+    }
+
+    /** @test */
     public function it_will_throw_an_exception_when_using_an_invalid_backoff_strategy()
     {
         $this->expectException(InvalidBackoffStrategy::class);
