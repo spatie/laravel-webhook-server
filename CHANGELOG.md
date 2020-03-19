@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 1.8.1 - 2020-03-19
+
+- fix `uuid`
+
 ## 1.8.0 - 2020-03-18
 
 - add `uuid`

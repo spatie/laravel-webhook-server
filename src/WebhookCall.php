@@ -65,6 +65,8 @@ class WebhookCall
     {
         $this->uuid = $uuid;
 
+        $this->callWebhookJob->uuid = $uuid;
+
         return $this;
     }
 
