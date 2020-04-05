@@ -61,12 +61,15 @@ class CallWebhookJob implements ShouldQueue
         $lastAttempt = $this->attempts() >= $this->tries;
 
         try {
-            $this->response = $client->request($this->httpVerb, $this->webhookUrl, [
+            $body = strtoupper($this->httpVerb) === 'GET'
+                ? ['query' => $this->payload]
+                : ['body' => json_encode($this->payload)];
+
+            $this->response = $client->request($this->httpVerb, $this->webhookUrl, array_merge([
                 'timeout' => $this->requestTimeout,
-                'body' => json_encode($this->payload),
                 'verify' => $this->verifySsl,
                 'headers' => $this->headers,
-            ]);
+            ], $body));
 
             if (! Str::startsWith($this->response->getStatusCode(), 2)) {
                 throw new Exception('Webhook call failed');

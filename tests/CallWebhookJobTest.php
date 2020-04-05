@@ -56,10 +56,27 @@ class CallWebhookJobTest extends TestCase
     {
         $this
             ->baseWebhook()
+            ->useHttpVerb('put')
+            ->dispatch();
+
+        $baseResponse = $this->baseRequest(['method' => 'put']);
+
+        $this->artisan('queue:work --once');
+
+        $this
+            ->testClient
+            ->assertRequestsMade([$baseResponse]);
+    }
+
+    /** @test */
+    public function it_uses_query_option_when_http_verb_is_get()
+    {
+        $this
+            ->baseWebhook()
             ->useHttpVerb('get')
             ->dispatch();
 
-        $baseResponse = $this->baseRequest(['method' => 'get']);
+        $baseResponse = $this->baseGetRequest();
 
         $this->artisan('queue:work --once');
 
@@ -214,6 +231,25 @@ class CallWebhookJobTest extends TestCase
             'options' => [
                 'timeout' => 3,
                 'body' => json_encode(['a' => 1]),
+                'verify' => true,
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Signature' => '1f14a62b15ba5095326d6c75c3e2e6b462dd71e1c4b7fbdac0f32309adb7be5f',
+                ],
+            ],
+        ];
+
+        return array_merge($defaultProperties, $overrides);
+    }
+
+    protected function baseGetRequest(array $overrides = []): array
+    {
+        $defaultProperties = [
+            'method' => 'get',
+            'url' => 'https://example.com/webhooks',
+            'options' => [
+                'timeout' => 3,
+                'query' => ['a' => 1],
                 'verify' => true,
                 'headers' => [
                     'Content-Type' => 'application/json',
