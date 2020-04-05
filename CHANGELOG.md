@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 1.9.1 - 2020-04-10
+
+- do not use body in GET request (#43)
+
 ## 1.9.0 - 2020-03-19
 
 - add `doNotSign`
