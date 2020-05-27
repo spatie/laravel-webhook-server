@@ -14,7 +14,11 @@ If you need to receive and process webhooks take a look at our [laravel-webhook-
 
 ## Support us
 
-We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us). 
+Learn how to create a package like this one, by watching our premium video course:
+
+[![Laravel Package training](https://spatie.be/github/package-training.jpg)](https://laravelpackage.training)
+
+We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us).
 
 We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
 
@@ -115,7 +119,6 @@ WebhookCall::create()
    ->dispatchNow();
 ```
 
-
 ### How signing requests works
 
 When setting up, it's common to generate, store, and share a secret between your app and the app that wants to receive webhooks. Generating the secret could be done with `Illuminate\Support\Str::random()`, but it's entirely up to you. The package will use the secret to sign a webhook call.
@@ -142,7 +145,6 @@ WebhookCall::create()
 ```
 
 By calling this method, the `Signature` header will not be set.
-
 
 ### Customizing signing requests
 
@@ -219,7 +221,6 @@ WebhookCall::create()
 ```
 
 Under the hood, the retrying of the webhook calls is implemented using [delayed dispatching](https://laravel.com/docs/master/queues#delayed-dispatching). Amazon SQS only has support for a small maximum delay. If you're using Amazon SQS for your queues, make sure you do not configure the package in a way so there are more than 15 minutes between each attempt.
-
 
 ### Customizing the HTTP verb
 
