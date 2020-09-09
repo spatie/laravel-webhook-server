@@ -207,6 +207,7 @@ class CallWebhookJobTest extends TestCase
         $this->baseWebhook()->dispatch();
 
         $this->artisan('queue:work --once');
+
         Event::assertDispatched(WebhookCallFailedEvent::class, function (WebhookCallFailedEvent $event) {
             $this->assertNotNull($event->errorType);
             $this->assertNotNull($event->errorMessage);
