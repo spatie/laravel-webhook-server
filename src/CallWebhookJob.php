@@ -4,6 +4,7 @@ namespace Spatie\WebhookServer;
 
 use Exception;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Bus\Queueable;
@@ -81,6 +82,11 @@ class CallWebhookJob implements ShouldQueue
         } catch (Exception $exception) {
             if ($exception instanceof RequestException) {
                 $this->response = $exception->getResponse();
+                $this->errorType = get_class($exception);
+                $this->errorMessage = $exception->getMessage();
+            }
+
+            if ($exception instanceof ConnectException) {
                 $this->errorType = get_class($exception);
                 $this->errorMessage = $exception->getMessage();
             }
