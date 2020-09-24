@@ -26,6 +26,8 @@ abstract class WebhookCallEvent
 
     public ?string $errorMessage;
 
+    public ?float $transferTime;
+
     public string $uuid;
 
     public function __construct(
