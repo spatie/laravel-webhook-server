@@ -39,6 +39,7 @@ abstract class WebhookCallEvent
         ?Response $response,
         ?string $errorType,
         ?string $errorMessage,
+        ?float $transferTime,
         string $uuid
     ) {
         $this->httpVerb = $httpVerb;
@@ -51,6 +52,7 @@ abstract class WebhookCallEvent
         $this->response = $response;
         $this->errorType = $errorType;
         $this->errorMessage = $errorMessage;
+        $this->transferTime = $transferTime;
         $this->uuid = $uuid;
     }
 }
