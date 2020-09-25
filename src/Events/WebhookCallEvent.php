@@ -56,6 +56,6 @@ abstract class WebhookCallEvent
         $this->errorType = $errorType;
         $this->errorMessage = $errorMessage;
         $this->uuid = $uuid;
-        $this->stats = $stats
+        $this->stats = $stats;
     }
 }
