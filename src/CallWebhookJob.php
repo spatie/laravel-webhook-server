@@ -51,11 +51,11 @@ class CallWebhookJob implements ShouldQueue
 
     private ?Response $response = null;
 
+    private ?TransferStats $stats = null;
+
     private ?string $errorType = null;
 
     private ?string $errorMessage = null;
-
-    public ?float $transferTime = 0;
 
     public function handle()
     {
@@ -74,9 +74,8 @@ class CallWebhookJob implements ShouldQueue
                 'verify' => $this->verifySsl,
                 'headers' => $this->headers,
                 'on_stats' => function (TransferStats $stats) {
-                    
-                    $this->response = $stats->getResponse();
-                    $this->transferTime = $stats->getTransferTime();
+
+                    $this->stats = $stats;
 
                     if (! Str::startsWith($this->response->getStatusCode(), 2)) {
                         throw new Exception('Webhook call failed');
@@ -141,8 +140,8 @@ class CallWebhookJob implements ShouldQueue
             $this->response,
             $this->errorType,
             $this->errorMessage,
-            $this->transferTime,
-            $this->uuid
+            $this->uuid,
+            $this->stats
         ));
     }
 }
