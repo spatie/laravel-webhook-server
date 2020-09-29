@@ -74,17 +74,15 @@ class CallWebhookJob implements ShouldQueue
                 'verify' => $this->verifySsl,
                 'headers' => $this->headers,
                 'on_stats' => function (TransferStats $stats) {
-
-                    $response = $stats->getResponse();
                     $this->stats = $stats;
-
-                    if (! Str::startsWith($response->getStatusCode(), 2)) {
-                        throw new Exception('Webhook call failed');
-                    }
-
-                    $this->dispatchEvent(WebhookCallSucceededEvent::class);
                 }
             ], $body));
+
+            if (!Str::startsWith($this->response->getStatusCode(), 2)) {
+                throw new Exception('Webhook call failed');
+            }
+
+            $this->dispatchEvent(WebhookCallSucceededEvent::class);
 
             return;
         } catch (Exception $exception) {
