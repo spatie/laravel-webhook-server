@@ -72,6 +72,11 @@ class WebhookCall
         return $this;
     }
 
+    public function getUuid(): string
+    {
+        return $this->uuid;
+    }
+
     public function onQueue(string $queue): self
     {
         $this->callWebhookJob->queue = $queue;

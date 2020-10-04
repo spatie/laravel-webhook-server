@@ -81,4 +81,13 @@ class WebhookTest extends TestCase
 
         WebhookCall::create()->signUsing(static::class);
     }
+
+    /** @test */
+    public function it_can_get_the_uuid_property()
+    {
+        $webhookCall = WebhookCall::create()->uuid('my-unique-identifier');
+
+        $this->assertIsString($webhookCall->getUuid());
+        $this->assertSame('my-unique-identifier', $webhookCall->getUuid());
+    }
 }
