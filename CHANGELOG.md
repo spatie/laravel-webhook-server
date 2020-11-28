@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 1.11.0 - 2020-11-28
+
+- add support for PHP 8
+
 ## 1.10.0 - 2020-10-04
 
 - add `getUuid`
