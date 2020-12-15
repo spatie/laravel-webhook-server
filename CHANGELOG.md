@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 1.11.1 - 2020-12-15
+
+- fix exception name for invalid signers (#67)
+
 ## 1.11.0 - 2020-11-28
 
 - add support for PHP 8
