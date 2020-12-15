@@ -126,7 +126,7 @@ class WebhookCall
     public function signUsing(string $signerClass): self
     {
         if (! is_subclass_of($signerClass, Signer::class)) {
-            throw InvalidSigner::doesImplementSigner($signerClass);
+            throw InvalidSigner::doesNotImplementSigner($signerClass);
         }
 
         $this->signer = app($signerClass);
