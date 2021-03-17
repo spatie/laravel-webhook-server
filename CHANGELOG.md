@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 1.11.2 - 2021-03-17
+
+- dispatch should return the PendingDispatch (#74)
+
 ## 1.11.1 - 2020-12-15
 
 - fix exception name for invalid signers (#67)
