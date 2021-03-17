@@ -2,6 +2,7 @@
 
 namespace Spatie\WebhookServer;
 
+use Illuminate\Foundation\Bus\PendingDispatch;
 use Illuminate\Support\Str;
 use Spatie\WebhookServer\BackoffStrategy\BackoffStrategy;
 use Spatie\WebhookServer\Exceptions\CouldNotCallWebhook;
@@ -176,18 +177,18 @@ class WebhookCall
         return $this;
     }
 
-    public function dispatch(): void
+    public function dispatch(): PendingDispatch
     {
         $this->prepareForDispatch();
 
-        dispatch($this->callWebhookJob);
+        return dispatch($this->callWebhookJob);
     }
 
-    public function dispatchNow(): void
+    public function dispatchNow()
     {
         $this->prepareForDispatch();
 
-        dispatch_now($this->callWebhookJob);
+        return dispatch_now($this->callWebhookJob);
     }
 
     protected function prepareForDispatch(): void
