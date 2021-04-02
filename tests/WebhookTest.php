@@ -43,6 +43,48 @@ class WebhookTest extends TestCase
     }
 
     /** @test */
+    public function it_can_keep_default_config_headers_and_set_new_ones()
+    {
+        $url = 'https://localhost';
+
+        WebhookCall::create()->url($url)
+            ->withHeaders(['User-Agent' => 'Spatie/Laravel-Webhook-Server'])
+            ->useSecret('123')
+            ->dispatch()
+        ;
+
+        Queue::assertPushed(CallWebhookJob::class, function (CallWebhookJob $job) use ($url) {
+            $config = config('webhook-server');
+
+            $this->assertArrayHasKey('Content-Type', $job->headers);
+            $this->assertArrayHasKey('User-Agent', $job->headers);
+
+            return true;
+        });
+    }
+
+    /** @test */
+    public function it_can_override_default_config_headers()
+    {
+        $url = 'https://localhost';
+
+        WebhookCall::create()->url($url)
+            ->withHeaders(['Content-Type' => 'text/plain'])
+            ->useSecret('123')
+            ->dispatch()
+        ;
+
+        Queue::assertPushed(CallWebhookJob::class, function (CallWebhookJob $job) use ($url) {
+            $config = config('webhook-server');
+
+            $this->assertArrayHasKey('Content-Type', $job->headers);
+            $this->assertEquals('text/plain', $job->headers['Content-Type']);
+
+            return true;
+        });
+    }
+
+    /** @test */
     public function it_will_throw_an_exception_when_calling_a_webhook_without_proving_an_url()
     {
         $this->expectException(CouldNotCallWebhook::class);

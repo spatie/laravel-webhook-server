@@ -144,7 +144,7 @@ class WebhookCall
 
     public function withHeaders(array $headers): self
     {
-        $this->headers = $headers;
+        $this->headers = array_merge($this->headers, $headers);
 
         return $this;
     }
