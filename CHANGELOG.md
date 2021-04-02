@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 1.11.3 - 2021-04-02
+
+- fix for missing default headers when using withHeaders (#79)
+
 ## 1.11.2 - 2021-03-17
 
 - dispatch should return the PendingDispatch (#74)
