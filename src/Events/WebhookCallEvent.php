@@ -3,6 +3,7 @@
 namespace Spatie\WebhookServer\Events;
 
 use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\TransferStats;
 
 abstract class WebhookCallEvent
 {
@@ -28,6 +29,8 @@ abstract class WebhookCallEvent
 
     public string $uuid;
 
+    public ?TransferStats $transferStats;
+
     public function __construct(
         string $httpVerb,
         string $webhookUrl,
@@ -39,7 +42,8 @@ abstract class WebhookCallEvent
         ?Response $response,
         ?string $errorType,
         ?string $errorMessage,
-        string $uuid
+        string $uuid,
+        ?TransferStats $transferStats
     ) {
         $this->httpVerb = $httpVerb;
         $this->webhookUrl = $webhookUrl;
@@ -52,5 +56,6 @@ abstract class WebhookCallEvent
         $this->errorType = $errorType;
         $this->errorMessage = $errorMessage;
         $this->uuid = $uuid;
+        $this->transferStats = $transferStats;
     }
 }
