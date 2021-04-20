@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 1.12.0 - 2021-04-20
+
+- pass Guzzle TransferStats into resulting Event (#81)
+
 ## 1.11.3 - 2021-04-02
 
 - fix for missing default headers when using withHeaders (#79)
