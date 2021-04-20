@@ -75,7 +75,7 @@ class CallWebhookJob implements ShouldQueue
                 'headers' => $this->headers,
                 'on_stats' => function (TransferStats $stats) {
                     $this->transferStats = $stats;
-                }
+                },
             ], $body));
 
             if (! Str::startsWith($this->response->getStatusCode(), 2)) {

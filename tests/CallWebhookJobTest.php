@@ -238,7 +238,8 @@ class CallWebhookJobTest extends TestCase
                     'Content-Type' => 'application/json',
                     'Signature' => '1f14a62b15ba5095326d6c75c3e2e6b462dd71e1c4b7fbdac0f32309adb7be5f',
                 ],
-                'on_stats' => function (TransferStats $stats) {},
+                'on_stats' => function (TransferStats $stats) {
+                },
             ],
         ];
 
@@ -258,7 +259,8 @@ class CallWebhookJobTest extends TestCase
                     'Content-Type' => 'application/json',
                     'Signature' => '1f14a62b15ba5095326d6c75c3e2e6b462dd71e1c4b7fbdac0f32309adb7be5f',
                 ],
-                'on_stats' => function (TransferStats $stats) {},
+                'on_stats' => function (TransferStats $stats) {
+                },
             ],
         ];
 
