@@ -7,6 +7,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\TransferStats;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -54,6 +55,8 @@ class CallWebhookJob implements ShouldQueue
 
     private ?string $errorMessage = null;
 
+    private ?TransferStats $transferStats = null;
+
     public function handle()
     {
         /** @var \GuzzleHttp\Client $client */
@@ -70,6 +73,9 @@ class CallWebhookJob implements ShouldQueue
                 'timeout' => $this->requestTimeout,
                 'verify' => $this->verifySsl,
                 'headers' => $this->headers,
+                'on_stats' => function (TransferStats $stats) {
+                    $this->transferStats = $stats;
+                }
             ], $body));
 
             if (! Str::startsWith($this->response->getStatusCode(), 2)) {
@@ -133,7 +139,8 @@ class CallWebhookJob implements ShouldQueue
             $this->response,
             $this->errorType,
             $this->errorMessage,
-            $this->uuid
+            $this->uuid,
+            $this->transferStats
         ));
     }
 }
