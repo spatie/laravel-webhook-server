@@ -191,6 +191,18 @@ class WebhookCall
         return dispatch_now($this->callWebhookJob);
     }
 
+    public function dispatchSync(): void
+    {
+        if (function_exists('dispatch_sync')) {
+            $this->prepareForDispatch();
+
+            dispatch_sync($this->callWebhookJob);
+            return;
+        }
+
+        $this->dispatchNow();
+    }
+
     protected function prepareForDispatch(): void
     {
         if (! $this->callWebhookJob->webhookUrl) {
