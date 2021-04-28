@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 1.13.0 - 2021-04-28
+
+- add `dispatchSync`
+
 ## 1.12.0 - 2021-04-20
 
 - pass Guzzle TransferStats into resulting Event (#81)
