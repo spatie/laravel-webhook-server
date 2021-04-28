@@ -197,6 +197,7 @@ class WebhookCall
             $this->prepareForDispatch();
 
             dispatch_sync($this->callWebhookJob);
+
             return;
         }
 
