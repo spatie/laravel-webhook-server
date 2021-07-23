@@ -2,21 +2,15 @@
 
 namespace Spatie\WebhookServer;
 
-use Illuminate\Support\ServiceProvider;
+use Spatie\LaravelPackageTools\Package;
+use Spatie\LaravelPackageTools\PackageServiceProvider;
 
-class WebhookServerServiceProvider extends ServiceProvider
+class WebhookServerServiceProvider extends PackageServiceProvider
 {
-    public function boot()
+    public function configurePackage(Package $package): void
     {
-        if ($this->app->runningInConsole()) {
-            $this->publishes([
-                __DIR__.'/../config/webhook-server.php' => config_path('webhook-server.php'),
-            ], 'config');
-        }
-    }
-
-    public function register()
-    {
-        $this->mergeConfigFrom(__DIR__.'/../config/webhook-server.php', 'webhook-server');
+        $package
+            ->name('laravel-webhook-server')
+            ->hasConfigFile();
     }
 }
