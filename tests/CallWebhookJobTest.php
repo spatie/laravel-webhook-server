@@ -45,7 +45,7 @@ class CallWebhookJobTest extends TestCase
     /** @test */
     public function it_can_make_a_legacy_synchronous_webhook_call()
     {
-        $this->baseWebhook()->dispatchNow();
+        $this->baseWebhook()->dispatchSync();
 
         $this
             ->testClient

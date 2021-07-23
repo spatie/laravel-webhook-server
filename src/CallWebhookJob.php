@@ -116,12 +116,12 @@ class CallWebhookJob implements ShouldQueue
         }
     }
 
-    public function tags()
+    public function tags(): array
     {
         return $this->tags;
     }
 
-    public function getResponse()
+    public function getResponse(): ?Response
     {
         return $this->response;
     }

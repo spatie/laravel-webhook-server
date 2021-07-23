@@ -18,18 +18,19 @@
         }
     ],
     "require": {
-        "php": "^8.0|^7.4",
+        "php": "^8.0",
         "ext-json": "*",
-        "guzzlehttp/guzzle": "^6.3|^7.0",
-        "illuminate/bus": "^6.0|^7.0|^8.0",
-        "illuminate/queue": "^6.0|^7.0|^8.0",
-        "illuminate/support": "^6.0|^7.0|^8.0"
+        "guzzlehttp/guzzle": "^6.3|^7.3",
+        "illuminate/bus": "^8.50",
+        "illuminate/queue": "^8.50",
+        "illuminate/support": "^8.50",
+        "spatie/laravel-package-tools": "^1.9"
     },
     "require-dev": {
-        "mockery/mockery": "^1.4",
-        "orchestra/testbench": "^4.0|^5.0|^6.0",
-        "phpunit/phpunit": "^9.4",
-        "spatie/test-time": "^1.2"
+        "mockery/mockery": "^1.4.3",
+        "orchestra/testbench": "^6.19",
+        "phpunit/phpunit": "^9.3.0",
+        "spatie/test-time": "^1.2.2"
     },
     "autoload": {
         "psr-4": {

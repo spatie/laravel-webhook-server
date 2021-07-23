@@ -2,6 +2,13 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 2.0.0 - 2021-07-23
+
+- require Laravel 8
+- require PHP 8
+
+No changes to the API were made, so you can safely upgrade from v1 to v2
+
 ## 1.13.0 - 2021-04-28
 
 - add `dispatchSync`
