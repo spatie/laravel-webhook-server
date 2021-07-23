@@ -2,7 +2,7 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
-## 2.0.0 - 2021-04-23
+## 2.0.0 - 2021-07-23
 
 - require Laravel 8
 - require PHP 8
