@@ -184,21 +184,11 @@ class WebhookCall
         return dispatch($this->callWebhookJob);
     }
 
-    /**
-     * @deprecated Will be removed in a future version in favor of dispatchSync
-     */
-    public function dispatchNow(): void
-    {
-        $this->dispatchSync();
-    }
-
     public function dispatchSync(): void
     {
         $this->prepareForDispatch();
 
-        function_exists('dispatch_sync')
-            ? dispatch_sync($this->callWebhookJob)
-            : dispatch_now($this->callWebhookJob);
+        dispatch_sync($this->callWebhookJob);
     }
 
     protected function prepareForDispatch(): void
