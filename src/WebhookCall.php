@@ -33,6 +33,7 @@ class WebhookCall
         return (new static())
             ->uuid(Str::uuid())
             ->onQueue($config['queue'])
+            ->onConnection($config['connection'] ?? null)
             ->useHttpVerb($config['http_verb'])
             ->maximumTries($config['tries'])
             ->useBackoffStrategy($config['backoff_strategy'])
@@ -81,6 +82,13 @@ class WebhookCall
     public function onQueue(string $queue): self
     {
         $this->callWebhookJob->queue = $queue;
+
+        return $this;
+    }
+
+    public function onConnection(string $connection): self
+    {
+        $this->callWebhookJob->connection = $connection;
 
         return $this;
     }

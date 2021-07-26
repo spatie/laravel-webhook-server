@@ -8,6 +8,11 @@ return [
     'queue' => 'default',
 
     /*
+     *  The default queue connection that should be used to send webhook requests.
+     */
+    'connection' => null,
+
+    /*
      * The default http verb to use.
      */
     'http_verb' => 'post',
