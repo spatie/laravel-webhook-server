@@ -86,7 +86,7 @@ class WebhookCall
         return $this;
     }
 
-    public function onConnection(string $connection): self
+    public function onConnection(?string $connection): self
     {
         $this->callWebhookJob->connection = $connection;
 
