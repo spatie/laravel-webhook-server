@@ -85,6 +85,24 @@ class WebhookTest extends TestCase
     }
 
     /** @test */
+    public function it_can_override_default_queue_connection()
+    {
+        $url = 'https://localhost';
+
+        WebhookCall::create()->url($url)
+            ->onConnection('foo')
+            ->useSecret('123')
+            ->dispatch()
+        ;
+
+        Queue::assertPushed(CallWebhookJob::class, function (CallWebhookJob $job) use ($url) {
+            $this->assertEquals('foo', $job->connection);
+
+            return true;
+        });
+    }
+
+    /** @test */
     public function it_will_throw_an_exception_when_calling_a_webhook_without_proving_an_url()
     {
         $this->expectException(CouldNotCallWebhook::class);
