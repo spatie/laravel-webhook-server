@@ -38,8 +38,8 @@ class CallWebhookJob implements ShouldQueue
 
     public bool $verifySsl;
 
-    /** @var string */
-    public $queue;
+    /** @var string|null */
+    public $queue = null;
 
     public array $payload = [];
 

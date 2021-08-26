@@ -79,7 +79,7 @@ class WebhookCall
         return $this->uuid;
     }
 
-    public function onQueue(string $queue): self
+    public function onQueue(?string $queue): self
     {
         $this->callWebhookJob->queue = $queue;
 
