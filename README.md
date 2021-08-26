@@ -107,12 +107,12 @@ If the receiving app doesn't respond with a response code starting with `2`, the
 
 ### Send webhook synchronously
 
-If you would like to call the webhook immediately (synchronously), you may use the dispatchNow method. When using this method, the webhook will not be queued and will be run immediately. This can be helpfull in situation where sending the webhook is part of a bigger job that already has been queued.
+If you would like to call the webhook immediately (synchronously), you may use the dispatchSync method. When using this method, the webhook will not be queued and will be run immediately. This can be helpfull in situation where sending the webhook is part of a bigger job that already has been queued.
 
 ```php
 WebhookCall::create()
    ...
-   ->dispatchNow();
+   ->dispatchSync();
 ```
 
 ### How signing requests works
