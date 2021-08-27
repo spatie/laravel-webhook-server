@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 2.1.1 - 2021-08-27
+
+- add ability to use default queue of connection (#94)
+
 ## 2.1.0 - 2021-08-01
 
 - allow setting queue connection (#92)
