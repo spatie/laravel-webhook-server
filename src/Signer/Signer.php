@@ -6,5 +6,5 @@ interface Signer
 {
     public function signatureHeaderName(): string;
 
-    public function calculateSignature(array $payload, string $secret): string;
+    public function calculateSignature(string $webhookUrl, array $payload, string $secret): string;
 }

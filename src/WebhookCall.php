@@ -220,7 +220,7 @@ class WebhookCall
             return $headers;
         }
 
-        $signature = $this->signer->calculateSignature($this->payload, $this->secret);
+        $signature = $this->signer->calculateSignature($this->callWebhookJob->webhookUrl, $this->payload, $this->secret);
 
         $headers[$this->signer->signatureHeaderName()] = $signature;
 
