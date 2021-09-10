@@ -2,6 +2,13 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 3.0.0 - 2021-09-10
+
+- support using webhook URLs as part of webhook signatures (#98)
+
+The only breaking change in this release is the addidation of `string $webhookUrl` to the `calculateSignature` method of the `Signer` interface. 
+If you have a custom `Signer` in your project, add that `$webhookUrl` to the `calculateSignature` method.
+
 ## 2.1.1 - 2021-08-27
 
 - add ability to use default queue of connection (#94)
