@@ -313,6 +313,47 @@ All these events have these properties:
 composer test
 ```
 
+## Testing Webhooks
+When using the package in automated tests, you'll want to perform one of the following to ensure that no webhooks are sent out to genuine websites
+
+### Bus
+```php 
+use Illuminate\Support\Facades\Bus;
+use Spatie\WebhookServer\CallWebhookJob;
+use Tests\TestCase;
+
+class TestFile extends TestCase
+{
+    public function testJobIsDispatched()
+    {
+        Bus::fake();
+
+        ... Perform webhook call ...
+
+        Bus::assertDispatched(CallWebhookJob::class);
+    }
+}
+```
+
+### Queue
+```php 
+use Illuminate\Support\Facades\Queue;
+use Spatie\WebhookServer\CallWebhookJob;
+use Tests\TestCase;
+
+class TestFile extends TestCase
+{
+    public function testJobIsQueued()
+    {
+        Queue::fake();
+
+        ... Perform webhook call ...
+
+        Queue::assertPushed(CallWebhookJob::class);
+    }
+}
+```
+
 ## Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
