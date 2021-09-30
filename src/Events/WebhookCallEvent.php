@@ -21,6 +21,5 @@ abstract class WebhookCallEvent
         public string $uuid,
         public ?TransferStats $transferStats
     ) {
-
     }
 }
