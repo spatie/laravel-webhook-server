@@ -4,11 +4,9 @@ namespace Spatie\WebhookServer\Signer;
 
 class DefaultSigner implements Signer
 {
-    public function calculateSignature(string $webhookUrl, array $payload, string $secret): string
+    public function calculateSignature(string $webhookUrl, string $payload, string $secret): string
     {
-        $payloadJson = json_encode($payload);
-
-        return hash_hmac('sha256', $payloadJson, $secret);
+        return hash_hmac('sha256', $payload, $secret);
     }
 
     public function signatureHeaderName(): string

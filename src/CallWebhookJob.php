@@ -41,7 +41,7 @@ class CallWebhookJob implements ShouldQueue
     /** @var string|null */
     public $queue = null;
 
-    public array $payload = [];
+    public array|string $payload = [];
 
     public array $meta = [];
 
@@ -67,7 +67,7 @@ class CallWebhookJob implements ShouldQueue
         try {
             $body = strtoupper($this->httpVerb) === 'GET'
                 ? ['query' => $this->payload]
-                : ['body' => json_encode($this->payload)];
+                : ['body' => is_array($this->payload) ? json_encode($this->payload) : $this->payload];
 
             $this->response = $client->request($this->httpVerb, $this->webhookUrl, array_merge([
                 'timeout' => $this->requestTimeout,
