@@ -59,6 +59,11 @@ return [
     'verify_ssl' => true,
 
     /*
+     * By default we will not failed job, only generate a FinalWebhookCallFailedEvent
+     */
+    'failed_if_error' => false,
+
+    /*
      * When using Laravel Horizon you can specify tags that should be used on the
      * underlying job that performs the webhook request.
      */

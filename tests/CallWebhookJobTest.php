@@ -5,6 +5,7 @@ namespace Spatie\WebhookServer\Tests;
 use GuzzleHttp\Client;
 use GuzzleHttp\TransferStats;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Queue;
 use Mockery\MockInterface;
 use Spatie\TestTime\TestTime;
 use Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy;
@@ -22,6 +23,7 @@ class CallWebhookJobTest extends TestCase
         parent::setUp();
 
         Event::fake();
+        Queue::fake();
 
         $this->testClient = new TestClient();
 
