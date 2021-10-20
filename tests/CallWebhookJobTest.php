@@ -43,6 +43,18 @@ class CallWebhookJobTest extends TestCase
     }
 
     /** @test */
+    public function it_can_make_a_webhook_with_string_payload_call()
+    {
+        $this->baseWebhook()->payload(json_encode(['a' => 1]))->dispatch();
+
+        $this->artisan('queue:work --once');
+
+        $this
+            ->testClient
+            ->assertRequestsMade([$this->baseRequest()]);
+    }
+
+    /** @test */
     public function it_can_make_a_legacy_synchronous_webhook_call()
     {
         $this->baseWebhook()->dispatchSync();
