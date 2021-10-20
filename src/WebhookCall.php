@@ -205,10 +205,6 @@ class WebhookCall
             throw CouldNotCallWebhook::secretNotSet();
         }
 
-        if ($this->signWebhook && strtoupper($this->callWebhookJob->httpVerb) === 'GET') {
-            throw CouldNotCallWebhook::secretNotAllowed();
-        }
-
         $this->callWebhookJob->headers = $this->getAllHeaders();
     }
 

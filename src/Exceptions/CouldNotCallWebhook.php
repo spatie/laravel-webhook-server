@@ -15,9 +15,4 @@ class CouldNotCallWebhook extends Exception
     {
         return new static('Could not call the webhook because no secret has been set.');
     }
-
-    public static function secretNotAllowed(): self
-    {
-        return new static('Could not call the webhook because secret is not allowed for GET method.');
-    }
 }

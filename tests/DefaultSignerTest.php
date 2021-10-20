@@ -11,7 +11,7 @@ class DefaultSignerTest extends TestCase
     {
         $signer = new DefaultSigner();
 
-        $signature = $signer->calculateSignature('https://my.app/webhooks', ['a' => '1'], 'abc');
+        $signature = $signer->calculateSignature('https://my.app/webhooks', json_encode(['a' => '1']), 'abc');
 
         $this->assertEquals(
             '345611a3626cf5e080a7a412184001882ab231b8bdb465dc76dbf709f01f210a',
