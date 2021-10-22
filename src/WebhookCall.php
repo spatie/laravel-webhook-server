@@ -42,7 +42,7 @@ class WebhookCall
             ->withHeaders($config['headers'])
             ->withTags($config['tags'])
             ->verifySsl($config['verify_ssl'])
-            ->failedIfError($config['failed_if_error']);
+            ->failedIfException($config['failed_if_exception']);
     }
 
     public function __construct()
@@ -172,9 +172,9 @@ class WebhookCall
         return $this;
     }
 
-    public function failedIfError(bool $failedIfError = true): self
+    public function failedIfException(bool $failedIfException = true): self
     {
-        $this->callWebhookJob->failedIfError = $failedIfError;
+        $this->callWebhookJob->failedIfException = $failedIfException;
 
         return $this;
     }

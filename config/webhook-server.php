@@ -59,9 +59,10 @@ return [
     'verify_ssl' => true,
 
     /*
-     * By default we will not failed job, only generate a FinalWebhookCallFailedEvent
+     * By default no job becomes failed if Exception thrown.
+     * If true, failed jobs are added to `failed_job` database table and it's possible to retry these jobs later.
      */
-    'failed_if_error' => false,
+    'failed_if_exception' => false,
 
     /*
      * When using Laravel Horizon you can specify tags that should be used on the

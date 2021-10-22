@@ -4,8 +4,8 @@ namespace Spatie\WebhookServer\Tests;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\TransferStats;
+use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Queue;
 use Mockery\MockInterface;
 use Spatie\TestTime\TestTime;
 use Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy;
@@ -23,7 +23,6 @@ class CallWebhookJobTest extends TestCase
         parent::setUp();
 
         Event::fake();
-        Queue::fake();
 
         $this->testClient = new TestClient();
 
@@ -227,6 +226,18 @@ class CallWebhookJobTest extends TestCase
 
             return true;
         });
+    }
+
+    /** @test */
+    public function it_s_generate_job_failed_event_if_an_exception_throws_and_failed_if_exception_config_is_set()
+    {
+        $this->testClient->throwConnectionException();
+
+        $this->baseWebhook()->maximumTries(1)->failedIfException()->dispatch();
+
+        $this->artisan('queue:work --once');
+
+        Event::assertDispatched(JobFailed::class, 1);
     }
 
     protected function baseWebhook(): WebhookCall

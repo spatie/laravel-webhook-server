@@ -36,6 +36,7 @@ class WebhookTest extends TestCase
             $this->assertEquals($config['backoff_strategy'], $job->backoffStrategyClass);
             $this->assertContains($config['signature_header_name'], array_keys($job->headers));
             $this->assertEquals($config['verify_ssl'], $job->verifySsl);
+            $this->assertEquals($config['failed_if_exception'], $job->failedIfException);
             $this->assertEquals($config['tags'], $job->tags);
 
             return true;
