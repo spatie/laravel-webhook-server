@@ -42,11 +42,6 @@ return [
     'queue' => 'default',
 
     /*
-     *  The default queue connection that should be used to send webhook requests.
-     */
-    'connection' => null,
-
-    /*
      * The default http verb to use.
      */
     'http_verb' => 'post',
@@ -66,9 +61,7 @@ return [
     /*
      * These are the headers that will be added to all webhook requests.
      */
-    'headers' => [
-        'Content-Type' => 'application/json',
-    ],
+    'headers' => [],
 
     /*
      * If a call to a webhook takes longer that this amount of seconds
@@ -91,18 +84,6 @@ return [
      * of the webhook is valid.
      */
     'verify_ssl' => true,
-
-    /*
-     * By default no job becomes failed if Exception thrown.
-     * If true, failed jobs are added to `failed_job` database table and it's possible to retry these jobs later.
-     */
-    'failed_if_exception' => false,
-
-    /*
-     * When using Laravel Horizon you can specify tags that should be used on the
-     * underlying job that performs the webhook request.
-     */
-    'tags' => [],
 ];
 ```
 
@@ -308,15 +289,14 @@ By default, the package will not log any exceptions that are thrown when sending
 To handle exceptions you need to create listeners for the `Spatie\WebhookServer\Events\WebhookCallFailedEvent` and/or `Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent` events.
 
 #### Retry failed execution
-You can activate the `failed_if_exception` option of the `webhook-server` config file. Alternatively, you can activate the fail job if Exception on a specific webhook like this:
-
+By default, failing jobs will be ignored. To throw an exception when the last attempt of a job fails, you can call `throwExceptionOnFailure` :
 ```php
 WebhookCall::create()
-    ->failedIfException()
+    ->throwExceptionOnFailure()
     ...
     ->dispatch();
 ```
-This option add a webhook to laravel `failed_jobs` database table if an exception occurs during execution. You can retry this execution with `php artisan queue:retry {jobId}` [Laravel doc to retry a job](https://laravel.com/docs/queues#retrying-failed-jobs).
+or activate the `throw_exception_on_failure` global option of the `webhook-server` config file.
 
 ### Events
 

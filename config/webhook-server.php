@@ -59,10 +59,9 @@ return [
     'verify_ssl' => true,
 
     /*
-     * By default no job becomes failed if Exception thrown.
-     * If true, failed jobs are added to `failed_job` database table and it's possible to retry these jobs later.
+     * When set to true, an exception will be thrown when the last attempt fails
      */
-    'failed_if_exception' => false,
+    'throw_exception_on_failure' => false,
 
     /*
      * When using Laravel Horizon you can specify tags that should be used on the

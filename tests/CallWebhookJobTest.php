@@ -229,15 +229,15 @@ class CallWebhookJobTest extends TestCase
     }
 
     /** @test */
-    public function it_s_generate_job_failed_event_if_an_exception_throws_and_failed_if_exception_config_is_set()
+    public function it_s_generate_job_failed_event_if_an_exception_throws_and_throw_exception_on_failure_config_is_set()
     {
         $this->testClient->throwConnectionException();
 
-        $this->baseWebhook()->maximumTries(1)->failedIfException()->dispatch();
+        $this->baseWebhook()->maximumTries(1)->throwExceptionOnFailure()->dispatch();
 
         $this->artisan('queue:work --once');
 
-        Event::assertDispatched(JobFailed::class, 1);
+        Event::assertDispatched(JobFailed::class);
     }
 
     protected function baseWebhook(): WebhookCall
