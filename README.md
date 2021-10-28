@@ -288,6 +288,16 @@ By default, the package will not log any exceptions that are thrown when sending
 
 To handle exceptions you need to create listeners for the `Spatie\WebhookServer\Events\WebhookCallFailedEvent` and/or `Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent` events.
 
+#### Retry failed execution
+By default, failing jobs will be ignored. To throw an exception when the last attempt of a job fails, you can call `throwExceptionOnFailure` :
+```php
+WebhookCall::create()
+    ->throwExceptionOnFailure()
+    ...
+    ->dispatch();
+```
+or activate the `throw_exception_on_failure` global option of the `webhook-server` config file.
+
 ### Events
 
 The package fires these events:

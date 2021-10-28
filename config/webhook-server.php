@@ -59,6 +59,11 @@ return [
     'verify_ssl' => true,
 
     /*
+     * When set to true, an exception will be thrown when the last attempt fails
+     */
+    'throw_exception_on_failure' => false,
+
+    /*
      * When using Laravel Horizon you can specify tags that should be used on the
      * underlying job that performs the webhook request.
      */

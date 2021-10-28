@@ -41,7 +41,8 @@ class WebhookCall
             ->signUsing($config['signer'])
             ->withHeaders($config['headers'])
             ->withTags($config['tags'])
-            ->verifySsl($config['verify_ssl']);
+            ->verifySsl($config['verify_ssl'])
+            ->throwExceptionOnFailure($config['throw_exception_on_failure']);
     }
 
     public function __construct()
@@ -167,6 +168,13 @@ class WebhookCall
     public function doNotVerifySsl(): self
     {
         $this->verifySsl(false);
+
+        return $this;
+    }
+
+    public function throwExceptionOnFailure(bool $throwExceptionOnFailure = true): self
+    {
+        $this->callWebhookJob->throwExceptionOnFailure = $throwExceptionOnFailure;
 
         return $this;
     }

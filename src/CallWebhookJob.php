@@ -38,6 +38,8 @@ class CallWebhookJob implements ShouldQueue
 
     public bool $verifySsl;
 
+    public bool $throwExceptionOnFailure;
+
     /** @var string|null */
     public $queue = null;
 
@@ -107,12 +109,12 @@ class CallWebhookJob implements ShouldQueue
             }
 
             $this->dispatchEvent(WebhookCallFailedEvent::class);
-        }
 
-        if ($lastAttempt) {
-            $this->dispatchEvent(FinalWebhookCallFailedEvent::class);
+            if ($lastAttempt) {
+                $this->dispatchEvent(FinalWebhookCallFailedEvent::class);
 
-            $this->delete();
+                $this->throwExceptionOnFailure ? $this->fail() : $this->delete();
+            }
         }
     }
 
