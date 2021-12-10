@@ -3,6 +3,7 @@
 namespace Spatie\WebhookServer\Tests;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\TransferStats;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Event;
@@ -237,7 +238,11 @@ class CallWebhookJobTest extends TestCase
 
         $this->artisan('queue:work --once');
 
-        Event::assertDispatched(JobFailed::class);
+        Event::assertDispatched(JobFailed::class, function (JobFailed $event) {
+            $this->assertInstanceOf(ConnectException::class, $event->exception);
+
+            return true;
+        });
     }
 
     protected function baseWebhook(): WebhookCall

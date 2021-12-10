@@ -113,7 +113,7 @@ class CallWebhookJob implements ShouldQueue
             if ($lastAttempt) {
                 $this->dispatchEvent(FinalWebhookCallFailedEvent::class);
 
-                $this->throwExceptionOnFailure ? $this->fail() : $this->delete();
+                $this->throwExceptionOnFailure ? $this->fail($exception) : $this->delete();
             }
         }
     }
