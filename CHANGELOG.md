@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 3.1.2 - 2022-01-26
+
+- support Laravel 9
+
 ## 3.1.1 - 2021-12-10
 
 ## What's Changed
