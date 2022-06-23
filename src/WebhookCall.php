@@ -200,11 +200,37 @@ class WebhookCall
         return dispatch($this->callWebhookJob);
     }
 
+    public function dispatchIf($condition): PendingDispatch|null
+    {
+        if ($condition) {
+            return $this->dispatch();
+        }
+
+        return null;
+    }
+
+    public function dispatchUnless($condition): PendingDispatch|null
+    {
+        return $this->dispatchIf(!$condition);
+    }
+
     public function dispatchSync(): void
     {
         $this->prepareForDispatch();
 
         dispatch_sync($this->callWebhookJob);
+    }
+
+    public function dispatchSyncIf($condition): void
+    {
+        if ($condition) {
+            $this->dispatchSync();
+        }
+    }
+
+    public function dispatchSyncUnless($condition): void
+    {
+        $this->dispatchSyncIf(!$condition);
     }
 
     protected function prepareForDispatch(): void
