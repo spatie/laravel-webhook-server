@@ -118,6 +118,28 @@ WebhookCall::create()
    ->dispatchSync();
 ```
 
+### Conditionally sending webhooks
+
+If you would like to conditionally dispatch a webhook, you may use the `dispatchIf`, `dispatchUnless`, `dispatchSyncIf` and `dispatchSyncUnless` methods:
+
+```php
+WebhookCall::create()
+   ...
+   ->dispatchIf($condition);
+
+WebhookCall::create()
+   ...
+   ->dispatchUnless($condition);
+
+WebhookCall::create()
+   ...
+   ->dispatchSyncIf($condition);
+
+WebhookCall::create()
+   ...
+   ->dispatchSyncUnless($condition);
+```
+
 ### How signing requests works
 
 When setting up, it's common to generate, store, and share a secret between your app and the app that wants to receive webhooks. Generating the secret could be done with `Illuminate\Support\Str::random()`, but it's entirely up to you. The package will use the secret to sign a webhook call.
