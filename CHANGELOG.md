@@ -2,6 +2,18 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 3.2.0 - 2022-06-24
+
+### What's Changed
+
+- feat: add dispatchIf, dispatchUnless, dispatchSyncIf and dispatchSync… by @regnerisch in https://github.com/spatie/laravel-webhook-server/pull/124
+
+### New Contributors
+
+- @regnerisch made their first contribution in https://github.com/spatie/laravel-webhook-server/pull/124
+
+**Full Changelog**: https://github.com/spatie/laravel-webhook-server/compare/3.1.2...3.2.0
+
 ## 3.1.2 - 2022-01-26
 
 - support Laravel 9
