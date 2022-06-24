@@ -211,7 +211,7 @@ class WebhookCall
 
     public function dispatchUnless($condition): PendingDispatch|null
     {
-        return $this->dispatchIf(!$condition);
+        return $this->dispatchIf(! $condition);
     }
 
     public function dispatchSync(): void
@@ -230,7 +230,7 @@ class WebhookCall
 
     public function dispatchSyncUnless($condition): void
     {
-        $this->dispatchSyncIf(!$condition);
+        $this->dispatchSyncIf(! $condition);
     }
 
     protected function prepareForDispatch(): void
