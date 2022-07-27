@@ -61,8 +61,7 @@ class CallWebhookJob implements ShouldQueue
 
     public function handle()
     {
-        /** @var \GuzzleHttp\Client $client */
-        $client = app(Client::class);
+        $client = $this->getClient();
 
         $lastAttempt = $this->attempts() >= $this->tries;
 
@@ -126,6 +125,11 @@ class CallWebhookJob implements ShouldQueue
     public function getResponse(): ?Response
     {
         return $this->response;
+    }
+
+    protected function getClient(): Client
+    {
+        return app(Client::class);
     }
 
     private function dispatchEvent(string $eventClass)
