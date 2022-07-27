@@ -4,6 +4,7 @@ namespace Spatie\WebhookServer;
 
 use Exception;
 use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Response;
@@ -127,7 +128,7 @@ class CallWebhookJob implements ShouldQueue
         return $this->response;
     }
 
-    protected function getClient(): Client
+    protected function getClient(): ClientInterface
     {
         return app(Client::class);
     }
