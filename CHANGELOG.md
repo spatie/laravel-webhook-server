@@ -2,6 +2,14 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 3.2.1 - 2022-07-29
+
+### What's Changed
+
+- Allow sub-classes of `CallWebhookJob` to use a `GuzzleHttp\Client` specific for outgoing webhooks by @bezhermoso in https://github.com/spatie/laravel-webhook-server/pull/125
+
+**Full Changelog**: https://github.com/spatie/laravel-webhook-server/compare/3.2.0...3.2.1
+
 ## 3.2.0 - 2022-06-24
 
 ### What's Changed
