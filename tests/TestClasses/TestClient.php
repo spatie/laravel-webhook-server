@@ -2,13 +2,17 @@
 
 namespace Spatie\WebhookServer\Tests\TestClasses;
 
+use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\Assert;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
-class TestClient
+class TestClient implements ClientInterface
 {
     protected array $requests = [];
 
@@ -18,7 +22,7 @@ class TestClient
 
     protected bool $throwConnectionException = false;
 
-    public function request(string $method, string $url, array $options)
+    public function request(string $method, $url = '', array $options = []): ResponseInterface
     {
         $this->requests[] = compact('method', 'url', 'options');
 
@@ -71,5 +75,25 @@ class TestClient
     public function throwConnectionException()
     {
         $this->throwConnectionException = true;
+    }
+
+    public function send(RequestInterface $request, array $options = []): ResponseInterface
+    {
+        throw new \BadMethodCallException('Not meant to be used yet.');
+    }
+
+    public function sendAsync(RequestInterface $request, array $options = []): PromiseInterface
+    {
+        throw new \BadMethodCallException('Not meant to be used yet.');
+    }
+
+    public function requestAsync(string $method, $uri, array $options = []): PromiseInterface
+    {
+        throw new \BadMethodCallException('Not meant to be used yet.');
+    }
+
+    public function getConfig(?string $option = null)
+    {
+        throw new \BadMethodCallException('Not meant to be used yet.');
     }
 }
