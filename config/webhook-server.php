@@ -68,4 +68,11 @@ return [
      * underlying job that performs the webhook request.
      */
     'tags' => [],
+
+    /*
+     * When the server returns one of the following status codes
+     * the job that performs the webhook request will be removed
+     * from the queue instead of being retried.
+     */
+    'remove_job_on_status_code' => [],
 ];

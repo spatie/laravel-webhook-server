@@ -7,6 +7,7 @@ use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\TransferStats;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Queue;
 use Mockery\MockInterface;
 use Spatie\TestTime\TestTime;
 use Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy;
@@ -240,6 +241,25 @@ class CallWebhookJobTest extends TestCase
 
         Event::assertDispatched(JobFailed::class, function (JobFailed $event) {
             $this->assertInstanceOf(ConnectException::class, $event->exception);
+
+            return true;
+        });
+    }
+
+    /** @test */
+    public function it_removes_job_from_queue_by_status_code_if_config_is_set()
+    {
+        $this->testClient->throwRequestException();
+
+        config()->set('webhook-server.remove_job_on_status_code', [500]);
+
+        $this->baseWebhook()->maximumTries(3)->dispatch();
+
+        $this->artisan('queue:work --once');
+
+        Event::assertDispatched(FinalWebhookCallFailedEvent::class, function (FinalWebhookCallFailedEvent $event) {
+            $this->assertNotNull($event->errorType);
+            $this->assertNotNull($event->errorMessage);
 
             return true;
         });
