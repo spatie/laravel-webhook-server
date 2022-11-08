@@ -110,7 +110,7 @@ class CallWebhookJob implements ShouldQueue
 
             $this->dispatchEvent(WebhookCallFailedEvent::class);
 
-            if ($lastAttempt) {
+            if ($lastAttempt || $this->shouldBeRemovedFromQueue()) {
                 $this->dispatchEvent(FinalWebhookCallFailedEvent::class);
 
                 $this->throwExceptionOnFailure ? $this->fail($exception) : $this->delete();
@@ -149,5 +149,10 @@ class CallWebhookJob implements ShouldQueue
             $this->uuid,
             $this->transferStats
         ));
+    }
+
+    private function shouldBeRemovedFromQueue(): bool
+    {
+        return false;
     }
 }

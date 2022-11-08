@@ -53,6 +53,11 @@ return [
     'backoff_strategy' => \Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy::class,
 
     /*
+     * This class is used to dispatch webhooks on to the queue.
+     */
+    'webhook_job' => \Spatie\WebhookServer\CallWebhookJob::class,
+
+    /*
      * By default we will verify that the ssl certificate of the destination
      * of the webhook is valid.
      */
