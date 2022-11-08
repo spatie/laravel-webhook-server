@@ -53,6 +53,11 @@ return [
     'backoff_strategy' => \Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy::class,
 
     /*
+     * This class is used to dispatch webhooks on to the queue.
+     */
+    'webhook_job' => \Spatie\WebhookServer\CallWebhookJob::class,
+
+    /*
      * By default we will verify that the ssl certificate of the destination
      * of the webhook is valid.
      */
@@ -68,11 +73,4 @@ return [
      * underlying job that performs the webhook request.
      */
     'tags' => [],
-
-    /*
-     * When the server returns one of the following status codes
-     * the job that performs the webhook request will be removed
-     * from the queue instead of being retried.
-     */
-    'remove_job_on_status_code' => [],
 ];

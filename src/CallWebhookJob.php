@@ -153,9 +153,6 @@ class CallWebhookJob implements ShouldQueue
 
     private function shouldBeRemovedFromQueue(): bool
     {
-        return in_array(
-            $this->response->getStatusCode(),
-            config('webhook-server.remove_job_on_status_code')
-        );
+        return false;
     }
 }

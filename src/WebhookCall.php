@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use Spatie\WebhookServer\BackoffStrategy\BackoffStrategy;
 use Spatie\WebhookServer\Exceptions\CouldNotCallWebhook;
 use Spatie\WebhookServer\Exceptions\InvalidBackoffStrategy;
+use Spatie\WebhookServer\Exceptions\InvalidWebhookJob;
 use Spatie\WebhookServer\Exceptions\InvalidSigner;
 use Spatie\WebhookServer\Signer\Signer;
 
@@ -31,6 +32,7 @@ class WebhookCall
         $config = config('webhook-server');
 
         return (new static())
+            ->useJob($config['webhook_job'] ?? CallWebhookJob::class)
             ->uuid(Str::uuid())
             ->onQueue($config['queue'])
             ->onConnection($config['connection'] ?? null)
@@ -45,9 +47,7 @@ class WebhookCall
             ->throwExceptionOnFailure($config['throw_exception_on_failure']);
     }
 
-    public function __construct()
-    {
-        $this->callWebhookJob = app(CallWebhookJob::class);
+    public function __construct() {
     }
 
     public function url(string $url): self
@@ -189,6 +189,19 @@ class WebhookCall
     public function withTags(array $tags): self
     {
         $this->callWebhookJob->tags = $tags;
+
+        return $this;
+    }
+
+    public function useJob(string $webhookJobClass): self
+    {
+        $job = app($webhookJobClass);
+
+        if (! $job instanceof CallWebhookJob) {
+            throw InvalidWebhookJob::doesNotExtendCallWebhookJob($webhookJobClass);
+        }
+
+        $this->callWebhookJob = $job;
 
         return $this;
     }

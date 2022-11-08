@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Queue;
 use Spatie\WebhookServer\CallWebhookJob;
 use Spatie\WebhookServer\Exceptions\CouldNotCallWebhook;
 use Spatie\WebhookServer\Exceptions\InvalidBackoffStrategy;
+use Spatie\WebhookServer\Exceptions\InvalidWebhookJob;
 use Spatie\WebhookServer\Exceptions\InvalidSigner;
 use Spatie\WebhookServer\WebhookCall;
 
@@ -141,6 +142,14 @@ class WebhookTest extends TestCase
         $this->expectException(InvalidSigner::class);
 
         WebhookCall::create()->signUsing(static::class);
+    }
+
+    /** @test */
+    public function it_will_throw_an_exception_when_using_an_invalid_webhook_jov()
+    {
+        $this->expectException(InvalidWebhookJob::class);
+
+        WebhookCall::create()->useJob(static::class);
     }
 
     /** @test */
