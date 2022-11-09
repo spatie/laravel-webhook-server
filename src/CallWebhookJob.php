@@ -133,6 +133,11 @@ class CallWebhookJob implements ShouldQueue
         return app(Client::class);
     }
 
+    protected function shouldBeRemovedFromQueue(): bool
+    {
+        return false;
+    }
+
     private function dispatchEvent(string $eventClass)
     {
         event(new $eventClass(
@@ -149,10 +154,5 @@ class CallWebhookJob implements ShouldQueue
             $this->uuid,
             $this->transferStats
         ));
-    }
-
-    private function shouldBeRemovedFromQueue(): bool
-    {
-        return false;
     }
 }
