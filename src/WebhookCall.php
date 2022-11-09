@@ -32,7 +32,7 @@ class WebhookCall
         $config = config('webhook-server');
 
         return (new static())
-            ->useJob($config['webhook_job'] ?? CallWebhookJob::class)
+            ->useJob($config['webhook_job'])
             ->uuid(Str::uuid())
             ->onQueue($config['queue'])
             ->onConnection($config['connection'] ?? null)
