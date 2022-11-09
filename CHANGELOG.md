@@ -2,6 +2,19 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 3.3.0 - 2022-11-09
+
+### What's Changed
+
+- Add missing config documentation to readme by @Kazuto in https://github.com/spatie/laravel-webhook-server/pull/134
+- Add option for configurable Webhook Job by @Kazuto in https://github.com/spatie/laravel-webhook-server/pull/135
+
+### New Contributors
+
+- @Kazuto made their first contribution in https://github.com/spatie/laravel-webhook-server/pull/134
+
+**Full Changelog**: https://github.com/spatie/laravel-webhook-server/compare/3.2.1...3.3.0
+
 ## 3.2.1 - 2022-07-29
 
 ### What's Changed
