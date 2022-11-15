@@ -159,6 +159,50 @@ class CallWebhookJobTest extends TestCase
     }
 
     /** @test */
+    public function it_will_use_a_proxy()
+    {
+        $this
+            ->baseWebhook()
+            ->useProxy('https://proxy.test')
+            ->dispatch();
+
+        $baseRequest = $this->baseRequest();
+
+        $baseRequest['options']['proxy'] = 'https://proxy.test';
+
+        $this->artisan('queue:work --once');
+
+        $this
+            ->testClient
+            ->assertRequestsMade([$baseRequest]);
+    }
+
+    /** @test */
+    public function it_will_use_a_proxy_array()
+    {
+        $this
+            ->baseWebhook()
+            ->useProxy([
+                'http' => 'http://proxy.test',
+                'https' => 'https://proxy.test'
+            ])
+            ->dispatch();
+
+        $baseRequest = $this->baseRequest();
+
+        $baseRequest['options']['proxy'] = [
+            'http' => 'http://proxy.test',
+            'https' => 'https://proxy.test'
+        ];
+
+        $this->artisan('queue:work --once');
+
+        $this
+            ->testClient
+            ->assertRequestsMade([$baseRequest]);
+    }
+
+    /** @test */
     public function by_default_it_will_retry_3_times_with_the_exponential_backoff_strategy()
     {
         $this->testClient->letEveryRequestFail();

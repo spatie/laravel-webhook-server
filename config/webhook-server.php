@@ -18,6 +18,13 @@ return [
     'http_verb' => 'post',
 
     /*
+     * Proxies to use for request.
+     *
+     * See https://docs.guzzlephp.org/en/stable/request-options.html#proxy
+     */
+    'proxy' => null,//'http://proxy.interpayservices.net:3128',
+
+    /*
      * This class is responsible for calculating the signature that will be added to
      * the headers of the webhook request. A webhook client can use the signature
      * to verify the request hasn't been tampered with.
