@@ -22,7 +22,7 @@ return [
      *
      * See https://docs.guzzlephp.org/en/stable/request-options.html#proxy
      */
-    'proxy' => null,//'http://proxy.interpayservices.net:3128',
+    'proxy' => null,
 
     /*
      * This class is responsible for calculating the signature that will be added to
