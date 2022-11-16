@@ -27,6 +27,8 @@ class CallWebhookJob implements ShouldQueue
 
     public string $httpVerb;
 
+    public string|array|null $proxy = null;
+
     public int $tries;
 
     public int $requestTimeout;
@@ -78,7 +80,7 @@ class CallWebhookJob implements ShouldQueue
                 'on_stats' => function (TransferStats $stats) {
                     $this->transferStats = $stats;
                 },
-            ], $body));
+            ], $body, is_null($this->proxy) ? [] : ['proxy' => $this->proxy]));
 
             if (! Str::startsWith($this->response->getStatusCode(), 2)) {
                 throw new Exception('Webhook call failed');

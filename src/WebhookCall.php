@@ -44,7 +44,8 @@ class WebhookCall
             ->withHeaders($config['headers'])
             ->withTags($config['tags'])
             ->verifySsl($config['verify_ssl'])
-            ->throwExceptionOnFailure($config['throw_exception_on_failure']);
+            ->throwExceptionOnFailure($config['throw_exception_on_failure'])
+            ->useProxy($config['proxy']);
     }
 
     public function __construct()
@@ -176,6 +177,13 @@ class WebhookCall
     public function throwExceptionOnFailure(bool $throwExceptionOnFailure = true): self
     {
         $this->callWebhookJob->throwExceptionOnFailure = $throwExceptionOnFailure;
+
+        return $this;
+    }
+
+    public function useProxy(array|string|null $proxy = null): self
+    {
+        $this->callWebhookJob->proxy = $proxy;
 
         return $this;
     }

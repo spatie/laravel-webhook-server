@@ -282,6 +282,19 @@ WebhookCall::create()
     ->dispatch();
 ```
 
+### Using a proxy
+
+You can direct webhooks through a proxy by specifying the `proxy` key in the `webhook-server` config file. To set a proxy for a specific
+request, you can use the `useProxy` call.
+
+```php
+WebhookCall::create()
+    ->useProxy('http://proxy.server:3128')
+    ...
+```
+
+The proxy specification follows the [guzzlehttp proxy format](https://docs.guzzlephp.org/en/stable/request-options.html#proxy)
+
 ### Verifying the SSL certificate of the receiving app
 
 When using an URL that starts with `https://` the package will verify if the SSL certificate of the receiving party is valid. If it is not, we will consider the webhook call failed. We don't recommend this, but you can turn off this verification by setting the `verify_ssl` key in the `webhook-server` config file to `false`.
