@@ -184,7 +184,7 @@ class CallWebhookJobTest extends TestCase
             ->baseWebhook()
             ->useProxy([
                 'http' => 'http://proxy.test',
-                'https' => 'https://proxy.test'
+                'https' => 'https://proxy.test',
             ])
             ->dispatch();
 
@@ -192,7 +192,7 @@ class CallWebhookJobTest extends TestCase
 
         $baseRequest['options']['proxy'] = [
             'http' => 'http://proxy.test',
-            'https' => 'https://proxy.test'
+            'https' => 'https://proxy.test',
         ];
 
         $this->artisan('queue:work --once');
