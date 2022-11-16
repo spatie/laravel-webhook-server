@@ -2,6 +2,18 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 3.4.0 - 2022-11-16
+
+### What's Changed
+
+- Add proxy option by @andycowan in https://github.com/spatie/laravel-webhook-server/pull/136
+
+### New Contributors
+
+- @andycowan made their first contribution in https://github.com/spatie/laravel-webhook-server/pull/136
+
+**Full Changelog**: https://github.com/spatie/laravel-webhook-server/compare/3.3.0...3.4.0
+
 ## 3.3.0 - 2022-11-09
 
 ### What's Changed
