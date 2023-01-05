@@ -1,203 +1,157 @@
 <?php
 
-namespace Spatie\WebhookServer\Tests;
-
 use Illuminate\Support\Facades\Queue;
+use function PHPUnit\Framework\assertTrue;
 use Spatie\WebhookServer\CallWebhookJob;
 use Spatie\WebhookServer\Exceptions\CouldNotCallWebhook;
 use Spatie\WebhookServer\Exceptions\InvalidBackoffStrategy;
 use Spatie\WebhookServer\Exceptions\InvalidSigner;
 use Spatie\WebhookServer\Exceptions\InvalidWebhookJob;
+
 use Spatie\WebhookServer\WebhookCall;
 
-class WebhookTest extends TestCase
-{
-    public function setUp(): void
-    {
-        parent::setUp();
+beforeEach(function () {
+    Queue::fake();
+});
 
-        Queue::fake();
-    }
+it('can dispatch a job that calls a webhook', function () {
+    $url = 'https://localhost';
 
-    /** @test */
-    public function it_can_dispatch_a_job_that_calls_a_webhook()
-    {
-        $url = 'https://localhost';
+    WebhookCall::create()->url($url)->useSecret('123')->dispatch();
 
-        WebhookCall::create()->url($url)->useSecret('123')->dispatch();
+    Queue::assertPushed(CallWebhookJob::class, function (CallWebhookJob $job) use ($url) {
+        $config = config('webhook-server');
 
-        Queue::assertPushed(CallWebhookJob::class, function (CallWebhookJob $job) use ($url) {
-            $config = config('webhook-server');
+        expect($job->queue)->toEqual($config['queue'])
+            ->and($job->webhookUrl)->toEqual($url)
+            ->and($job->httpVerb)->toEqual($config['http_verb'])
+            ->and($job->tries)->toEqual($config['tries'])
+            ->and($job->requestTimeout)->toEqual($config['timeout_in_seconds'])
+            ->and($job->backoffStrategyClass)->toEqual($config['backoff_strategy'])
+            ->and(array_keys($job->headers))->toContain($config['signature_header_name'])
+            ->and($job->verifySsl)->toEqual($config['verify_ssl'])
+            ->and($job->throwExceptionOnFailure)->toEqual($config['throw_exception_on_failure'])
+            ->and($job->tags)->toEqual($config['tags']);
 
-            $this->assertEquals($config['queue'], $job->queue);
-            $this->assertEquals($url, $job->webhookUrl);
-            $this->assertEquals($config['http_verb'], $job->httpVerb);
-            $this->assertEquals($config['tries'], $job->tries);
-            $this->assertEquals($config['timeout_in_seconds'], $job->requestTimeout);
-            $this->assertEquals($config['backoff_strategy'], $job->backoffStrategyClass);
-            $this->assertContains($config['signature_header_name'], array_keys($job->headers));
-            $this->assertEquals($config['verify_ssl'], $job->verifySsl);
-            $this->assertEquals($config['throw_exception_on_failure'], $job->throwExceptionOnFailure);
-            $this->assertEquals($config['tags'], $job->tags);
+        return true;
+    });
+});
 
-            return true;
-        });
-    }
+it('can keep default config headers and set new ones', function () {
+    $url = 'https://localhost';
 
-    /** @test */
-    public function it_can_keep_default_config_headers_and_set_new_ones()
-    {
-        $url = 'https://localhost';
+    WebhookCall::create()->url($url)
+        ->withHeaders(['User-Agent' => 'Spatie/Laravel-Webhook-Server'])
+        ->useSecret('123')
+        ->dispatch();
 
-        WebhookCall::create()->url($url)
-            ->withHeaders(['User-Agent' => 'Spatie/Laravel-Webhook-Server'])
-            ->useSecret('123')
-            ->dispatch()
-        ;
+    Queue::assertPushed(CallWebhookJob::class, function (CallWebhookJob $job) use ($url) {
+        $config = config('webhook-server');
 
-        Queue::assertPushed(CallWebhookJob::class, function (CallWebhookJob $job) use ($url) {
-            $config = config('webhook-server');
+        expect($job->headers)->toHaveKeys(['Content-Type', 'User-Agent']);
 
-            $this->assertArrayHasKey('Content-Type', $job->headers);
-            $this->assertArrayHasKey('User-Agent', $job->headers);
+        return true;
+    });
+});
 
-            return true;
-        });
-    }
+it('can override default config headers', function () {
+    $url = 'https://localhost';
 
-    /** @test */
-    public function it_can_override_default_config_headers()
-    {
-        $url = 'https://localhost';
+    WebhookCall::create()->url($url)
+        ->withHeaders(['Content-Type' => 'text/plain'])
+        ->useSecret('123')
+        ->dispatch();
 
-        WebhookCall::create()->url($url)
-            ->withHeaders(['Content-Type' => 'text/plain'])
-            ->useSecret('123')
-            ->dispatch()
-        ;
+    Queue::assertPushed(CallWebhookJob::class, function (CallWebhookJob $job) use ($url) {
+        $config = config('webhook-server');
 
-        Queue::assertPushed(CallWebhookJob::class, function (CallWebhookJob $job) use ($url) {
-            $config = config('webhook-server');
+        expect($job->headers)->toHaveKey('Content-Type');
+        expect($job->headers['Content-Type'])->toEqual('text/plain');
 
-            $this->assertArrayHasKey('Content-Type', $job->headers);
-            $this->assertEquals('text/plain', $job->headers['Content-Type']);
+        return true;
+    });
+});
 
-            return true;
-        });
-    }
+it('can override default queue connection', function () {
+    $url = 'https://localhost';
 
-    /** @test */
-    public function it_can_override_default_queue_connection()
-    {
-        $url = 'https://localhost';
+    WebhookCall::create()->url($url)
+        ->onConnection('foo')
+        ->useSecret('123')
+        ->dispatch();
 
-        WebhookCall::create()->url($url)
-            ->onConnection('foo')
-            ->useSecret('123')
-            ->dispatch()
-        ;
+    Queue::assertPushed(CallWebhookJob::class, function (CallWebhookJob $job) use ($url) {
+        $this->assertEquals('foo', $job->connection);
 
-        Queue::assertPushed(CallWebhookJob::class, function (CallWebhookJob $job) use ($url) {
-            $this->assertEquals('foo', $job->connection);
+        return true;
+    });
+});
 
-            return true;
-        });
-    }
+it('will throw an exception when calling a webhook without proving an url', function () {
+    WebhookCall::create()->dispatch();
+})->throws(CouldNotCallWebhook::class);
 
-    /** @test */
-    public function it_will_throw_an_exception_when_calling_a_webhook_without_proving_an_url()
-    {
-        $this->expectException(CouldNotCallWebhook::class);
+it('will throw an exception when no secret has been set', function () {
+    WebhookCall::create()->url('https://localhost')->dispatch();
+})->throws(CouldNotCallWebhook::class);
 
-        WebhookCall::create()->dispatch();
-    }
+it('will not throw an exception if there is not secret and the request should not be signed', function () {
+    WebhookCall::create()->doNotSign()->url('https://localhost')->dispatch();
 
-    /** @test */
-    public function it_will_throw_an_exception_when_no_secret_has_been_set()
-    {
-        $this->expectException(CouldNotCallWebhook::class);
+    assertTrue(true);
+});
 
-        WebhookCall::create()->url('https://localhost')->dispatch();
-    }
+it('will throw an exception when using an invalid backoff strategy', function () {
+    WebhookCall::create()->useBackoffStrategy(static::class);
+})->throws(InvalidBackoffStrategy::class);
 
-    /** @test */
-    public function it_will_not_throw_an_exception_if_there_is_not_secret_and_the_request_should_not_be_signed()
-    {
-        WebhookCall::create()->doNotSign()->url('https://localhost')->dispatch();
+it('will throw and exception when using an invalid signer', function () {
+    WebhookCall::create()->signUsing(static::class);
+})->throws(InvalidSigner::class);
 
-        $this->assertTrue(true);
-    }
+it('will throw an exception when using an invalid webhook job', function () {
+    $invalidJob = new class {
+    };
 
-    /** @test */
-    public function it_will_throw_an_exception_when_using_an_invalid_backoff_strategy()
-    {
-        $this->expectException(InvalidBackoffStrategy::class);
+    WebhookCall::create()->useJob($invalidJob::class);
+})->throws(InvalidWebhookJob::class);
 
-        WebhookCall::create()->useBackoffStrategy(static::class);
-    }
+it('can get the UUID property', function () {
+    $webhookCall = WebhookCall::create()->uuid('my-unique-identifier');
 
-    /** @test */
-    public function it_will_throw_and_exception_when_using_an_invalid_signer()
-    {
-        $this->expectException(InvalidSigner::class);
+    expect($webhookCall->getUuid())
+        ->toBeString()
+        ->toEqual('my-unique-identifier');
+});
 
-        WebhookCall::create()->signUsing(static::class);
-    }
+it('can dispatch a job that calls a webhook if condition true', function () {
+    $url = 'https://localhost';
 
-    /** @test */
-    public function it_will_throw_an_exception_when_using_an_invalid_webhook_job()
-    {
-        $this->expectException(InvalidWebhookJob::class);
+    WebhookCall::create()->url($url)->useSecret('123')->dispatchIf(true);
 
-        WebhookCall::create()->useJob(static::class);
-    }
+    Queue::assertPushed(CallWebhookJob::class);
+});
 
-    /** @test */
-    public function it_can_get_the_uuid_property()
-    {
-        $webhookCall = WebhookCall::create()->uuid('my-unique-identifier');
+it('can not dispatch a job that calls a webhook if condition false', function () {
+    $url = 'https://localhost';
 
-        $this->assertIsString($webhookCall->getUuid());
-        $this->assertSame('my-unique-identifier', $webhookCall->getUuid());
-    }
+    WebhookCall::create()->url($url)->useSecret('123')->dispatchIf(false);
 
-    /** @test */
-    public function it_can_dispatch_a_job_that_calls_a_webhook_if_condition_true()
-    {
-        $url = 'https://localhost';
+    Queue::assertNotPushed(CallWebhookJob::class);
+});
 
-        WebhookCall::create()->url($url)->useSecret('123')->dispatchIf(true);
+it('cannot dispatch a job that calls a webhook unless condition true', function () {
+    $url = 'https://localhost';
 
-        Queue::assertPushed(CallWebhookJob::class);
-    }
+    WebhookCall::create()->url($url)->useSecret('123')->dispatchUnless(true);
 
-    /** @test */
-    public function it_can_not_dispatch_a_job_that_calls_a_webhook_if_condition_false()
-    {
-        $url = 'https://localhost';
+    Queue::assertNotPushed(CallWebhookJob::class);
+});
 
-        WebhookCall::create()->url($url)->useSecret('123')->dispatchIf(false);
+it('can dispatch a job that calls a webhook unless condition false', function () {
+    $url = 'https://localhost';
 
-        Queue::assertNotPushed(CallWebhookJob::class);
-    }
+    WebhookCall::create()->url($url)->useSecret('123')->dispatchUnless(false);
 
-    /** @test */
-    public function it_can_not_dispatch_a_job_that_calls_a_webhook_unless_condition_true()
-    {
-        $url = 'https://localhost';
-
-        WebhookCall::create()->url($url)->useSecret('123')->dispatchUnless(true);
-
-        Queue::assertNotPushed(CallWebhookJob::class);
-    }
-
-    /** @test */
-    public function it_can_dispatch_a_job_that_calls_a_webhook_unless_condition_false()
-    {
-        $url = 'https://localhost';
-
-        WebhookCall::create()->url($url)->useSecret('123')->dispatchUnless(false);
-
-        Queue::assertPushed(CallWebhookJob::class);
-    }
-}
+    Queue::assertPushed(CallWebhookJob::class);
+});

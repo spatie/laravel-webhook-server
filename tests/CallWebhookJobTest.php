@@ -1,341 +1,302 @@
 <?php
 
-namespace Spatie\WebhookServer\Tests;
-
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\TransferStats;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Event;
 use Mockery\MockInterface;
+use function Pest\Laravel\artisan;
+use function Pest\Laravel\mock;
 use Spatie\TestTime\TestTime;
 use Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy;
 use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
+
 use Spatie\WebhookServer\Tests\TestClasses\TestClient;
 use Spatie\WebhookServer\WebhookCall;
 
-class CallWebhookJobTest extends TestCase
+function baseWebhook(): WebhookCall
 {
-    private TestClient $testClient;
+    return WebhookCall::create()
+        ->url('https://example.com/webhooks')
+        ->useSecret('abc')
+        ->payload(['a' => 1]);
+}
 
-    public function setUp(): void
-    {
-        parent::setUp();
+function baseRequest(array $overrides = []): array
+{
+    $defaultProperties = [
+        'method' => 'post',
+        'url' => 'https://example.com/webhooks',
+        'options' => [
+            'timeout' => 3,
+            'body' => json_encode(['a' => 1]),
+            'verify' => true,
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'Signature' => '1f14a62b15ba5095326d6c75c3e2e6b462dd71e1c4b7fbdac0f32309adb7be5f',
+            ],
+            'on_stats' => function (TransferStats $stats) {
+            },
+        ],
+    ];
 
-        Event::fake();
+    return array_merge($defaultProperties, $overrides);
+}
 
-        $this->testClient = new TestClient();
+function baseGetRequest(array $overrides = []): array
+{
+    $defaultProperties = [
+        'method' => 'get',
+        'url' => 'https://example.com/webhooks',
+        'options' => [
+            'timeout' => 3,
+            'query' => ['a' => 1],
+            'verify' => true,
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'Signature' => '1f14a62b15ba5095326d6c75c3e2e6b462dd71e1c4b7fbdac0f32309adb7be5f',
+            ],
+            'on_stats' => function (TransferStats $stats) {
+            },
+        ],
+    ];
 
-        app()->bind(Client::class, function () {
-            return $this->testClient;
-        });
-    }
+    return array_merge($defaultProperties, $overrides);
+}
 
-    /** @test */
-    public function it_can_make_a_webhook_call()
-    {
-        $this->baseWebhook()->dispatch();
+beforeEach(function () {
+    Event::fake();
 
-        $this->artisan('queue:work --once');
+    $this->testClient = new TestClient();
 
-        $this
-            ->testClient
-            ->assertRequestsMade([$this->baseRequest()]);
-    }
+    app()->bind(Client::class, function () {
+        return $this->testClient;
+    });
+});
 
-    /** @test */
-    public function it_can_make_a_legacy_synchronous_webhook_call()
-    {
-        $this->baseWebhook()->dispatchSync();
+it('can make a webhook call', function () {
+    baseWebhook()->dispatch();
 
-        $this
-            ->testClient
-            ->assertRequestsMade([$this->baseRequest()]);
-    }
+    artisan('queue:work --once');
 
-    /** @test */
-    public function it_can_make_a_synchronous_webhook_call()
-    {
-        $this->baseWebhook()->dispatchSync();
+    $this
+        ->testClient
+        ->assertRequestsMade([baseRequest()]);
+});
 
-        $this
-            ->testClient
-            ->assertRequestsMade([$this->baseRequest()]);
-    }
+it('can make a legacy synchronous webhook call', function () {
+    baseWebhook()->dispatchSync();
 
-    /** @test */
-    public function it_can_use_a_different_http_verb()
-    {
-        $this
-            ->baseWebhook()
-            ->useHttpVerb('put')
-            ->dispatch();
+    $this
+        ->testClient
+        ->assertRequestsMade([baseRequest()]);
+});
 
-        $baseResponse = $this->baseRequest(['method' => 'put']);
+it('can make a synchronous webhook call', function () {
+    baseWebhook()->dispatchSync();
 
-        $this->artisan('queue:work --once');
+    $this
+        ->testClient
+        ->assertRequestsMade([baseRequest()]);
+});
 
-        $this
-            ->testClient
-            ->assertRequestsMade([$baseResponse]);
-    }
+it('can use a different HTTP verb', function () {
+    baseWebhook()
+        ->useHttpVerb('put')
+        ->dispatch();
 
-    /** @test */
-    public function it_uses_query_option_when_http_verb_is_get()
-    {
-        $this
-            ->baseWebhook()
-            ->useHttpVerb('get')
-            ->dispatch();
+    $baseResponse = baseRequest(['method' => 'put']);
 
-        $baseResponse = $this->baseGetRequest();
+    artisan('queue:work --once');
 
-        $this->artisan('queue:work --once');
+    $this
+        ->testClient
+        ->assertRequestsMade([$baseResponse]);
+});
 
-        $this
-            ->testClient
-            ->assertRequestsMade([$baseResponse]);
-    }
+it('uses query option when http verb is get', function () {
+    baseWebhook()
+        ->useHttpVerb('get')
+        ->dispatch();
 
-    /** @test */
-    public function it_can_add_extra_headers()
-    {
-        $extraHeaders = [
-            'Content-Type' => 'application/json',
-            'header1' => 'value1',
-            'headers2' => 'value2',
-        ];
+    $baseResponse = baseGetRequest();
 
-        $this->baseWebhook()
-            ->withHeaders($extraHeaders)
-            ->dispatch();
+    artisan('queue:work --once');
 
-        $baseRequest = $this->baseRequest();
+    $this
+        ->testClient
+        ->assertRequestsMade([$baseResponse]);
+});
 
-        $baseRequest['options']['headers'] = array_merge(
-            $baseRequest['options']['headers'],
-            $extraHeaders
-        );
+it('can add extra headers', function () {
+    $extraHeaders = [
+        'Content-Type' => 'application/json',
+        'header1' => 'value1',
+        'headers2' => 'value2',
+    ];
 
-        $this->artisan('queue:work --once');
+    baseWebhook()
+        ->withHeaders($extraHeaders)
+        ->dispatch();
 
-        $this
-            ->testClient
-            ->assertRequestsMade([$baseRequest]);
-    }
+    $baseRequest = baseRequest();
 
-    /** @test */
-    public function it_will_not_set_a_signature_header_when_the_request_should_not_be_signed()
-    {
-        $this->baseWebhook()
-            ->doNotSign()
-            ->dispatch();
+    $baseRequest['options']['headers'] = array_merge(
+        $baseRequest['options']['headers'],
+        $extraHeaders
+    );
 
-        $baseRequest = $this->baseRequest();
+    artisan('queue:work --once');
 
-        unset($baseRequest['options']['headers']['Signature']);
+    $this
+        ->testClient
+        ->assertRequestsMade([$baseRequest]);
+});
 
-        $this->artisan('queue:work --once');
+it('will not set a signature header when the request should not be signed', function () {
+    baseWebhook()
+        ->doNotSign()
+        ->dispatch();
 
-        $this
-            ->testClient
-            ->assertRequestsMade([$baseRequest]);
-    }
+    $baseRequest = baseRequest();
 
-    /** @test */
-    public function it_can_disable_verifying_ssl()
-    {
-        $this->baseWebhook()->doNotVerifySsl()->dispatch();
+    unset($baseRequest['options']['headers']['Signature']);
 
-        $baseRequest = $this->baseRequest();
-        $baseRequest['options']['verify'] = false;
+    artisan('queue:work --once');
 
-        $this->artisan('queue:work --once');
+    $this
+        ->testClient
+        ->assertRequestsMade([$baseRequest]);
+});
 
-        $this
-            ->testClient
-            ->assertRequestsMade([$baseRequest]);
-    }
+it('can disable verifying SSL', function () {
+    baseWebhook()->doNotVerifySsl()->dispatch();
 
-    /** @test */
-    public function it_will_use_a_proxy()
-    {
-        $this
-            ->baseWebhook()
-            ->useProxy('https://proxy.test')
-            ->dispatch();
+    $baseRequest = baseRequest();
+    $baseRequest['options']['verify'] = false;
 
-        $baseRequest = $this->baseRequest();
+    artisan('queue:work --once');
 
-        $baseRequest['options']['proxy'] = 'https://proxy.test';
+    $this
+        ->testClient
+        ->assertRequestsMade([$baseRequest]);
+});
 
-        $this->artisan('queue:work --once');
+it('will use a proxy', function () {
+    baseWebhook()
+        ->useProxy('https://proxy.test')
+        ->dispatch();
 
-        $this
-            ->testClient
-            ->assertRequestsMade([$baseRequest]);
-    }
+    $baseRequest = baseRequest();
 
-    /** @test */
-    public function it_will_use_a_proxy_array()
-    {
-        $this
-            ->baseWebhook()
-            ->useProxy([
-                'http' => 'http://proxy.test',
-                'https' => 'https://proxy.test',
-            ])
-            ->dispatch();
+    $baseRequest['options']['proxy'] = 'https://proxy.test';
 
-        $baseRequest = $this->baseRequest();
+    artisan('queue:work --once');
 
-        $baseRequest['options']['proxy'] = [
+    $this
+        ->testClient
+        ->assertRequestsMade([$baseRequest]);
+});
+
+it('will use a proxy array', function () {
+    baseWebhook()
+        ->useProxy([
             'http' => 'http://proxy.test',
             'https' => 'https://proxy.test',
-        ];
+        ])
+        ->dispatch();
 
-        $this->artisan('queue:work --once');
+    $baseRequest = baseRequest();
 
-        $this
-            ->testClient
-            ->assertRequestsMade([$baseRequest]);
-    }
+    $baseRequest['options']['proxy'] = [
+        'http' => 'http://proxy.test',
+        'https' => 'https://proxy.test',
+    ];
 
-    /** @test */
-    public function by_default_it_will_retry_3_times_with_the_exponential_backoff_strategy()
-    {
-        $this->testClient->letEveryRequestFail();
+    artisan('queue:work --once');
 
-        $this->baseWebhook()->dispatch();
+    $this
+        ->testClient
+        ->assertRequestsMade([$baseRequest]);
+});
 
-        $this->mock(ExponentialBackoffStrategy::class, function (MockInterface $mock) {
-            $mock->shouldReceive('waitInSecondsAfterAttempt')->withArgs([1])->once()->andReturns(10);
-            $mock->shouldReceive('waitInSecondsAfterAttempt')->withArgs([2])->once()->andReturns(100);
-            $mock->shouldReceive('waitInSecondsAfterAttempt')->withArgs([3])->never();
+test('by default it will retry 3 times with the exponential backoff strategy', function () {
+    $this->testClient->letEveryRequestFail();
 
-            return $mock;
-        });
+    baseWebhook()->dispatch();
 
-        $this->artisan('queue:work --once');
-        Event::assertDispatched(WebhookCallFailedEvent::class, 1);
+    mock(ExponentialBackoffStrategy::class, function (MockInterface $mock) {
+        $mock->shouldReceive('waitInSecondsAfterAttempt')->withArgs([1])->once()->andReturns(10);
+        $mock->shouldReceive('waitInSecondsAfterAttempt')->withArgs([2])->once()->andReturns(100);
+        $mock->shouldReceive('waitInSecondsAfterAttempt')->withArgs([3])->never();
 
-        TestTime::addSeconds(9);
-        $this->artisan('queue:work --once');
-        Event::assertDispatched(WebhookCallFailedEvent::class, 1);
+        return $mock;
+    });
 
-        TestTime::addSeconds(1);
-        $this->artisan('queue:work --once');
-        Event::assertDispatched(WebhookCallFailedEvent::class, 2);
+    artisan('queue:work --once');
+    Event::assertDispatched(WebhookCallFailedEvent::class, 1);
 
-        TestTime::addSeconds(100);
-        $this->artisan('queue:work --once');
-        Event::assertDispatched(WebhookCallFailedEvent::class, 3);
-        Event::assertDispatched(FinalWebhookCallFailedEvent::class, 1);
-        $this->testClient->assertRequestCount(3);
+    TestTime::addSeconds(9);
+    artisan('queue:work --once');
+    Event::assertDispatched(WebhookCallFailedEvent::class, 1);
 
-        TestTime::addSeconds(1000);
-        $this->artisan('queue:work --once');
-        Event::assertDispatched(WebhookCallFailedEvent::class, 3);
-        Event::assertDispatched(FinalWebhookCallFailedEvent::class, 1);
-        $this->testClient->assertRequestCount(3);
-    }
+    TestTime::addSeconds(1);
+    artisan('queue:work --once');
+    Event::assertDispatched(WebhookCallFailedEvent::class, 2);
 
-    /** @test */
-    public function it_sets_the_response_field_on_request_failure()
-    {
-        $this->testClient->throwRequestException();
+    TestTime::addSeconds(100);
+    artisan('queue:work --once');
+    Event::assertDispatched(WebhookCallFailedEvent::class, 3);
+    Event::assertDispatched(FinalWebhookCallFailedEvent::class, 1);
+    $this->testClient->assertRequestCount(3);
 
-        $this->baseWebhook()->dispatch();
+    TestTime::addSeconds(1000);
+    artisan('queue:work --once');
+    Event::assertDispatched(WebhookCallFailedEvent::class, 3);
+    Event::assertDispatched(FinalWebhookCallFailedEvent::class, 1);
+    $this->testClient->assertRequestCount(3);
+});
 
-        $this->artisan('queue:work --once');
-        Event::assertDispatched(WebhookCallFailedEvent::class, function (WebhookCallFailedEvent $event) {
-            $this->assertNotNull($event->response);
+it('sets the response field on request failure', function () {
+    $this->testClient->throwRequestException();
 
-            return true;
-        });
-    }
+    baseWebhook()->dispatch();
 
-    /** @test */
-    public function it_sets_the_error_fields_on_connection_failure()
-    {
-        $this->testClient->throwConnectionException();
+    artisan('queue:work --once');
+    Event::assertDispatched(WebhookCallFailedEvent::class, function (WebhookCallFailedEvent $event) {
+        $this->assertNotNull($event->response);
 
-        $this->baseWebhook()->dispatch();
+        return true;
+    });
+});
 
-        $this->artisan('queue:work --once');
+it('sets the error fields on connection failure', function () {
+    $this->testClient->throwConnectionException();
 
-        Event::assertDispatched(WebhookCallFailedEvent::class, function (WebhookCallFailedEvent $event) {
-            $this->assertNotNull($event->errorType);
-            $this->assertNotNull($event->errorMessage);
+    baseWebhook()->dispatch();
 
-            return true;
-        });
-    }
+    artisan('queue:work --once');
 
-    /** @test */
-    public function it_s_generate_job_failed_event_if_an_exception_throws_and_throw_exception_on_failure_config_is_set()
-    {
-        $this->testClient->throwConnectionException();
+    Event::assertDispatched(WebhookCallFailedEvent::class, function (WebhookCallFailedEvent $event) {
+        expect($event->errorType)->not->toBeNull()
+            ->and($event->errorMessage)->not->toBeNull();
 
-        $this->baseWebhook()->maximumTries(1)->throwExceptionOnFailure()->dispatch();
+        return true;
+    });
+});
 
-        $this->artisan('queue:work --once');
+it('generate job failed event if an exception throws and throw exception on failure config is set', function () {
+    $this->testClient->throwConnectionException();
 
-        Event::assertDispatched(JobFailed::class, function (JobFailed $event) {
-            $this->assertInstanceOf(ConnectException::class, $event->exception);
+    baseWebhook()->maximumTries(1)->throwExceptionOnFailure()->dispatch();
 
-            return true;
-        });
-    }
+    artisan('queue:work --once');
 
-    protected function baseWebhook(): WebhookCall
-    {
-        return WebhookCall::create()
-            ->url('https://example.com/webhooks')
-            ->useSecret('abc')
-            ->payload(['a' => 1]);
-    }
+    Event::assertDispatched(JobFailed::class, function (JobFailed $event) {
+        expect($event->exception)->toBeInstanceOf(ConnectException::class);
 
-    protected function baseRequest(array $overrides = []): array
-    {
-        $defaultProperties = [
-            'method' => 'post',
-            'url' => 'https://example.com/webhooks',
-            'options' => [
-                'timeout' => 3,
-                'body' => json_encode(['a' => 1]),
-                'verify' => true,
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                    'Signature' => '1f14a62b15ba5095326d6c75c3e2e6b462dd71e1c4b7fbdac0f32309adb7be5f',
-                ],
-                'on_stats' => function (TransferStats $stats) {
-                },
-            ],
-        ];
-
-        return array_merge($defaultProperties, $overrides);
-    }
-
-    protected function baseGetRequest(array $overrides = []): array
-    {
-        $defaultProperties = [
-            'method' => 'get',
-            'url' => 'https://example.com/webhooks',
-            'options' => [
-                'timeout' => 3,
-                'query' => ['a' => 1],
-                'verify' => true,
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                    'Signature' => '1f14a62b15ba5095326d6c75c3e2e6b462dd71e1c4b7fbdac0f32309adb7be5f',
-                ],
-                'on_stats' => function (TransferStats $stats) {
-                },
-            ],
-        ];
-
-        return array_merge($defaultProperties, $overrides);
-    }
-}
+        return true;
+    });
+});

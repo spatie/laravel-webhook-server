@@ -1,22 +1,17 @@
 <?php
 
-namespace Spatie\WebhookServer\Tests;
-
 use Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy;
 
-class ExponentialBackoffStrategyTest extends TestCase
-{
-    /** @test */
-    public function it_can_return_the_wait_in_seconds_after_a_certain_attempts()
-    {
-        $strategy = new ExponentialBackoffStrategy();
+it('can return the wait in seconds after a certain attempts', function () {
+    $strategy = new ExponentialBackoffStrategy();
 
-        $this->assertEquals(10, $strategy->waitInSecondsAfterAttempt(1));
-        $this->assertEquals(100, $strategy->waitInSecondsAfterAttempt(2));
-        $this->assertEquals(1000, $strategy->waitInSecondsAfterAttempt(3));
-        $this->assertEquals(10000, $strategy->waitInSecondsAfterAttempt(4));
-        $this->assertEquals(100000, $strategy->waitInSecondsAfterAttempt(5));
-        $this->assertEquals(100000, $strategy->waitInSecondsAfterAttempt(6));
-        $this->assertEquals(100000, $strategy->waitInSecondsAfterAttempt(7));
-    }
-}
+    expect([
+        $strategy->waitInSecondsAfterAttempt(1),
+        $strategy->waitInSecondsAfterAttempt(2),
+        $strategy->waitInSecondsAfterAttempt(3),
+        $strategy->waitInSecondsAfterAttempt(4),
+        $strategy->waitInSecondsAfterAttempt(5),
+        $strategy->waitInSecondsAfterAttempt(6),
+        $strategy->waitInSecondsAfterAttempt(7),
+    ])->sequence(10, 100, 1000, 10000, 100000, 100000, 100000);
+});
