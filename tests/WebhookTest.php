@@ -1,14 +1,14 @@
 <?php
 
 use Illuminate\Support\Facades\Queue;
+use function PHPUnit\Framework\assertTrue;
 use Spatie\WebhookServer\CallWebhookJob;
 use Spatie\WebhookServer\Exceptions\CouldNotCallWebhook;
 use Spatie\WebhookServer\Exceptions\InvalidBackoffStrategy;
 use Spatie\WebhookServer\Exceptions\InvalidSigner;
 use Spatie\WebhookServer\Exceptions\InvalidWebhookJob;
-use Spatie\WebhookServer\WebhookCall;
 
-use function PHPUnit\Framework\assertTrue;
+use Spatie\WebhookServer\WebhookCall;
 
 beforeEach(function () {
     Queue::fake();
@@ -110,8 +110,7 @@ it('will throw and exception when using an invalid signer', function () {
 })->throws(InvalidSigner::class);
 
 it('will throw an exception when using an invalid webhook job', function () {
-    $invalidJob = new class
-    {
+    $invalidJob = new class {
     };
 
     WebhookCall::create()->useJob($invalidJob::class);

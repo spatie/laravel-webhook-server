@@ -6,15 +6,15 @@ use GuzzleHttp\TransferStats;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Event;
 use Mockery\MockInterface;
+use function Pest\Laravel\artisan;
+use function Pest\Laravel\mock;
 use Spatie\TestTime\TestTime;
 use Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy;
 use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
+
 use Spatie\WebhookServer\Tests\TestClasses\TestClient;
 use Spatie\WebhookServer\WebhookCall;
-
-use function Pest\Laravel\artisan;
-use function Pest\Laravel\mock;
 
 function baseWebhook(): WebhookCall
 {
