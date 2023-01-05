@@ -29,6 +29,7 @@
     "require-dev": {
         "mockery/mockery": "^1.4.3",
         "orchestra/testbench": "^6.19|^7.0",
+        "pestphp/pest": "^1.22",
         "phpunit/phpunit": "^9.3.0",
         "spatie/test-time": "^1.2.2"
     },
@@ -48,7 +49,10 @@
 
     },
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
     },
     "extra": {
         "laravel": {
