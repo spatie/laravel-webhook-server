@@ -1,7 +1,5 @@
 <?php
 
-namespace Spatie\WebhookServer\Tests;
-
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\TransferStats;
@@ -282,8 +280,8 @@ it('sets the error fields on connection failure', function () {
     artisan('queue:work --once');
 
     Event::assertDispatched(WebhookCallFailedEvent::class, function (WebhookCallFailedEvent $event) {
-        $this->assertNotNull($event->errorType);
-        $this->assertNotNull($event->errorMessage);
+        expect($event->errorType)->not->toBeNull()
+            ->and($event->errorMessage)->not->toBeNull();
 
         return true;
     });
@@ -297,7 +295,7 @@ it('generate job failed event if an exception throws and throw exception on fail
     artisan('queue:work --once');
 
     Event::assertDispatched(JobFailed::class, function (JobFailed $event) {
-        $this->assertInstanceOf(ConnectException::class, $event->exception);
+        expect($event->exception)->toBeInstanceOf(ConnectException::class);
 
         return true;
     });
