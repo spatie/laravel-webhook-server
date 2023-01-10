@@ -64,8 +64,6 @@ class CallWebhookJob implements ShouldQueue
 
     public function handle()
     {
-        $client = $this->getClient();
-
         $lastAttempt = $this->attempts() >= $this->tries;
 
         try {
@@ -73,14 +71,7 @@ class CallWebhookJob implements ShouldQueue
                 ? ['query' => $this->payload]
                 : ['body' => json_encode($this->payload)];
 
-            $this->response = $client->request($this->httpVerb, $this->webhookUrl, array_merge([
-                'timeout' => $this->requestTimeout,
-                'verify' => $this->verifySsl,
-                'headers' => $this->headers,
-                'on_stats' => function (TransferStats $stats) {
-                    $this->transferStats = $stats;
-                },
-            ], $body, is_null($this->proxy) ? [] : ['proxy' => $this->proxy]));
+            $this->response = $this->createRequest($body);
 
             if (! Str::startsWith($this->response->getStatusCode(), 2)) {
                 throw new Exception('Webhook call failed');
@@ -133,6 +124,20 @@ class CallWebhookJob implements ShouldQueue
     protected function getClient(): ClientInterface
     {
         return app(Client::class);
+    }
+
+    protected function createRequest(array $body): Response
+    {
+        $client = $this->getClient();
+
+        return $client->request($this->httpVerb, $this->webhookUrl, array_merge([
+            'timeout' => $this->requestTimeout,
+            'verify' => $this->verifySsl,
+            'headers' => $this->headers,
+            'on_stats' => function (TransferStats $stats) {
+                $this->transferStats = $stats;
+            },
+        ], $body, is_null($this->proxy) ? [] : ['proxy' => $this->proxy]));
     }
 
     protected function shouldBeRemovedFromQueue(): bool
