@@ -2,6 +2,22 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 3.4.1 - 2023-01-10
+
+### What's Changed
+
+- Add PHP 8.2 Support by @patinthehat in https://github.com/spatie/laravel-webhook-server/pull/138
+- Convert all tests to pest by @alexmanase in https://github.com/spatie/laravel-webhook-server/pull/139
+- Refactored Request to Method by @JamesFreeman in https://github.com/spatie/laravel-webhook-server/pull/140
+
+### New Contributors
+
+- @patinthehat made their first contribution in https://github.com/spatie/laravel-webhook-server/pull/138
+- @alexmanase made their first contribution in https://github.com/spatie/laravel-webhook-server/pull/139
+- @JamesFreeman made their first contribution in https://github.com/spatie/laravel-webhook-server/pull/140
+
+**Full Changelog**: https://github.com/spatie/laravel-webhook-server/compare/3.4.0...3.4.1
+
 ## 3.4.0 - 2022-11-16
 
 ### What's Changed
