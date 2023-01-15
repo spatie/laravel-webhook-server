@@ -197,7 +197,7 @@ interface Signer
 }
 ```
 
-After creating your signer, you can specify it's class name in the `signer` key of the `webhook-server` config file. Your signer will then be used by default in all webhook calls.
+After creating your signer, you can specify its class name in the `signer` key of the `webhook-server` config file. Your signer will then be used by default in all webhook calls.
 
 You can also specify a signer for a specific webhook call:
 
@@ -245,7 +245,7 @@ interface BackoffStrategy
 }
 ```
 
-You can make your custom strategy the default strategy by specifying it's fully qualified class name in the `backoff_strategy` of the `webhook-server` config file. Alternatively, you can specify a strategy for a specific webhook like this.
+You can make your custom strategy the default strategy by specifying its fully qualified class name in the `backoff_strategy` of the `webhook-server` config file. Alternatively, you can specify a strategy for a specific webhook like this.
 
 ```php
 WebhookCall::create()
