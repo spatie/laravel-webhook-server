@@ -21,9 +21,9 @@
         "php": "^8.0",
         "ext-json": "*",
         "guzzlehttp/guzzle": "^6.3|^7.3",
-        "illuminate/bus": "^8.50|^9.0",
-        "illuminate/queue": "^8.50|^9.0",
-        "illuminate/support": "^8.50|^9.0",
+        "illuminate/bus": "^8.50|^9.0|^10.0",
+        "illuminate/queue": "^8.50|^9.0|^10.0",
+        "illuminate/support": "^8.50|^9.0|^10.0",
         "spatie/laravel-package-tools": "^1.11"
     },
     "require-dev": {
