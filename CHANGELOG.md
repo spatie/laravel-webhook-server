@@ -2,6 +2,20 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 3.4.2 - 2023-01-25
+
+### What's Changed
+
+- Fixes a couple of minor typographical errors. by @cxj in https://github.com/spatie/laravel-webhook-server/pull/141
+- support Laravel 10.0 by @hihuangwei in https://github.com/spatie/laravel-webhook-server/pull/142
+
+### New Contributors
+
+- @cxj made their first contribution in https://github.com/spatie/laravel-webhook-server/pull/141
+- @hihuangwei made their first contribution in https://github.com/spatie/laravel-webhook-server/pull/142
+
+**Full Changelog**: https://github.com/spatie/laravel-webhook-server/compare/3.4.1...3.4.2
+
 ## 3.4.1 - 2023-01-10
 
 ### What's Changed
