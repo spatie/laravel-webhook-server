@@ -54,11 +54,11 @@ class CallWebhookJob implements ShouldQueue
 
     public string $uuid = '';
 
-    private ?Response $response = null;
+    protected ?Response $response = null;
 
-    private ?string $errorType = null;
+    protected ?string $errorType = null;
 
-    private ?string $errorMessage = null;
+    protected ?string $errorMessage = null;
 
     private ?TransferStats $transferStats = null;
 
