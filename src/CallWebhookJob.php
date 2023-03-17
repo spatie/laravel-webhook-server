@@ -60,7 +60,7 @@ class CallWebhookJob implements ShouldQueue
 
     protected ?string $errorMessage = null;
 
-    private ?TransferStats $transferStats = null;
+    protected ?TransferStats $transferStats = null;
 
     public function handle()
     {
