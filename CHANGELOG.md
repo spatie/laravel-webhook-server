@@ -2,6 +2,14 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 3.4.3 - 2023-03-17
+
+### What's Changed
+
+- Change to protected properties `$response`, `$errorType` and `$errorMessage` in `CallWebhookJob`  by @Kazuto in https://github.com/spatie/laravel-webhook-server/pull/143
+
+**Full Changelog**: https://github.com/spatie/laravel-webhook-server/compare/3.4.2...3.4.3
+
 ## 3.4.2 - 2023-01-25
 
 ### What's Changed
