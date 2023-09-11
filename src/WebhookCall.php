@@ -25,6 +25,7 @@ class WebhookCall
 
     private array $payload = [];
 
+    private string $rawBody;
     private $signWebhook = true;
 
     public static function create(): self
@@ -253,6 +254,14 @@ class WebhookCall
     public function dispatchSyncUnless($condition): void
     {
         $this->dispatchSyncIf(! $condition);
+    }
+
+    public function sendRawBody(string $body): self
+    {
+        $this->callWebhookJob->payload = $body;
+        $this->callWebhookJob->outputType = "RAW";
+
+        return $this;
     }
 
     protected function prepareForDispatch(): void

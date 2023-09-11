@@ -46,13 +46,15 @@ class CallWebhookJob implements ShouldQueue
     /** @var string|null */
     public $queue = null;
 
-    public array $payload = [];
+    public array|string $payload = [];
 
     public array $meta = [];
 
     public array $tags = [];
 
     public string $uuid = '';
+
+    public string $outputType = "JSON";
 
     protected ?Response $response = null;
 
@@ -69,7 +71,7 @@ class CallWebhookJob implements ShouldQueue
         try {
             $body = strtoupper($this->httpVerb) === 'GET'
                 ? ['query' => $this->payload]
-                : ['body' => json_encode($this->payload)];
+                : ['body' => $this->generateBody()];
 
             $this->response = $this->createRequest($body);
 
@@ -161,5 +163,13 @@ class CallWebhookJob implements ShouldQueue
             $this->uuid,
             $this->transferStats
         ));
+    }
+
+    private function generateBody(): string
+    {
+        return match ($this->outputType) {
+            "RAW" => $this->payload,
+            default => json_encode($this->payload),
+        };
     }
 }
