@@ -25,7 +25,6 @@ class WebhookCall
 
     private array $payload = [];
 
-    private string $rawBody;
     private $signWebhook = true;
 
     public static function create(): self
