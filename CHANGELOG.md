@@ -2,6 +2,18 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 3.5.0 - 2023-09-12
+
+### What's Changed
+
+- Webhook option to allow sending a raw body instead of array -> json. by @DotNetSimon in https://github.com/spatie/laravel-webhook-server/pull/146
+
+### New Contributors
+
+- @DotNetSimon made their first contribution in https://github.com/spatie/laravel-webhook-server/pull/146
+
+**Full Changelog**: https://github.com/spatie/laravel-webhook-server/compare/3.4.3...3.5.0
+
 ## 3.4.3 - 2023-03-17
 
 ### What's Changed
