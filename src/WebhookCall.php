@@ -255,6 +255,14 @@ class WebhookCall
         $this->dispatchSyncIf(! $condition);
     }
 
+    public function sendRawBody(string $body): self
+    {
+        $this->callWebhookJob->payload = $body;
+        $this->callWebhookJob->outputType = "RAW";
+
+        return $this;
+    }
+
     protected function prepareForDispatch(): void
     {
         if (! $this->callWebhookJob->webhookUrl) {

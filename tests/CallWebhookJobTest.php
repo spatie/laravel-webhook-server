@@ -300,3 +300,24 @@ it('generate job failed event if an exception throws and throw exception on fail
         return true;
     });
 });
+
+it('send raw body data if rawBody is set', function () {
+    $testBody = "<xml>anotherOption</xml>";
+    WebhookCall::create()
+        ->url('https://example.com/webhooks')
+        ->useSecret('abc')
+        ->sendRawBody($testBody)
+        ->doNotSign()
+        ->dispatch();
+
+    $baseRequest = baseRequest();
+
+    $baseRequest['options']['body'] = $testBody;
+    unset($baseRequest['options']['headers']['Signature']);
+
+    artisan('queue:work --once');
+
+    $this
+        ->testClient
+        ->assertRequestsMade([$baseRequest]);
+});
