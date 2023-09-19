@@ -352,7 +352,8 @@ or activate the `throw_exception_on_failure` global option of the `webhook-serve
 
 By default, all webhooks will transform the payload into JSON. Instead of sending JSON, you can send any string by using the `sendRawBody(string $body)` option instead.
 
-Due to type mismatch in the Signer API, it is currently not support to sign raw data requests
+Due to type mismatch in the Signer API, it is currently not support to sign raw data requests.
+When using the _sendRawBody_ option, you will receive a _string_ payload in the WebhookEvents.
 ```php
 WebhookCall::create()
     ->sendRawBody("<root>someXMLContent</root>")
