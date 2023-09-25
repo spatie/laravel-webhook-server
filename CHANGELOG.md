@@ -2,6 +2,14 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 3.6.0 - 2023-09-25
+
+### What's Changed
+
+- Fix webhook event type for raw body by @DotNetSimon in https://github.com/spatie/laravel-webhook-server/pull/147
+
+**Full Changelog**: https://github.com/spatie/laravel-webhook-server/compare/3.5.0...3.6.0
+
 ## 3.5.0 - 2023-09-12
 
 ### What's Changed
