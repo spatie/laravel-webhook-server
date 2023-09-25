@@ -349,4 +349,3 @@ it('send raw body data in event if rawBody is set', function () {
         return true;
     });
 });
-
