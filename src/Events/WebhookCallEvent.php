@@ -10,7 +10,7 @@ abstract class WebhookCallEvent
     public function __construct(
         public string $httpVerb,
         public string $webhookUrl,
-        public array $payload,
+        public array|string $payload,
         public array $headers,
         public array $meta,
         public array $tags,

@@ -321,3 +321,32 @@ it('send raw body data if rawBody is set', function () {
         ->testClient
         ->assertRequestsMade([$baseRequest]);
 });
+
+
+it('send raw body data in event if rawBody is set', function () {
+    $this->testClient->throwConnectionException();
+
+    $testBody = "<xml>anotherOption</xml>";
+    WebhookCall::create()
+        ->url('https://example.com/webhooks')
+        ->useSecret('abc')
+        ->sendRawBody($testBody)
+        ->doNotSign()
+        ->dispatch();
+
+    $baseRequest = baseRequest();
+
+    $baseRequest['options']['body'] = $testBody;
+    unset($baseRequest['options']['headers']['Signature']);
+
+    artisan('queue:work --once');
+
+    Event::assertDispatched(WebhookCallFailedEvent::class, function (WebhookCallFailedEvent $event) use ($testBody) {
+        expect($event->errorType)->not->toBeNull()
+            ->and($event->errorMessage)->not->toBeNull()
+            ->and($event->payload)->toBe($testBody);
+
+        return true;
+    });
+});
+
