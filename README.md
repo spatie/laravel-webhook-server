@@ -292,6 +292,23 @@ WebhookCall::create()
     ...
 ```
 
+### Using mutual TLS authentication
+
+To safeguard the integrity of webhook data transmission, it's critical to authenticate the intended recipient of your webhook payload. 
+Mutual TLS authentication serves as a robust method for this purpose. Contrary to standard TLS, where only the client verifies the server, 
+mutual TLS requires both the webhook endpoint (acting as the client) and the webhook provider (acting as the server) to authenticate each other. 
+This is achieved through an exchange of certificates during the TLS handshake, ensuring that both parties confirm each other's identity.
+
+```php
+WebhookCall::create()
+    ->mutualTls(
+        certPath: storage_path('path/to/cert.pem'), 
+        certPassphrase: 'optional_cert_passphrase', 
+        sslKeyPath: storage_path('path/to/key.pem'), 
+        sslKeyPassphrase: 'optional_key_passphrase'
+    )
+```
+
 The proxy specification follows the [guzzlehttp proxy format](https://docs.guzzlephp.org/en/stable/request-options.html#proxy)
 
 ### Verifying the SSL certificate of the receiving app
