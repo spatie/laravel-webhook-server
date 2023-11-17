@@ -117,6 +117,16 @@ class WebhookCall
         return $this;
     }
 
+    public function mutualTls(string $cert, string $sslKey, ?string $certPassword = null, ?string $sslKeyPassword = null): self
+    {
+        $this->callWebhookJob->cert = $cert;
+        $this->callWebhookJob->certPassword = $certPassword;
+        $this->callWebhookJob->sslKey = $sslKey;
+        $this->callWebhookJob->sslKeyPassword = $sslKeyPassword;
+
+        return $this;
+    }
+
     public function useBackoffStrategy(string $backoffStrategyClass): self
     {
         if (! is_subclass_of($backoffStrategyClass, BackoffStrategy::class)) {

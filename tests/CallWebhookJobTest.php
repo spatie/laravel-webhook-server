@@ -184,6 +184,40 @@ it('can disable verifying SSL', function () {
         ->assertRequestsMade([$baseRequest]);
 });
 
+it('will use mutual TLS without passphrases', function () {
+    baseWebhook()
+        ->mutualTls('foobar', 'barfoo')
+        ->dispatch();
+
+    $baseRequest = baseRequest();
+
+    $baseRequest['options']['cert'] = ['foobar', null];
+    $baseRequest['options']['ssl_key'] = ['barfoo', null];
+
+    artisan('queue:work --once');
+
+    $this
+        ->testClient
+        ->assertRequestsMade([$baseRequest]);
+});
+
+it('will use mutual TLS with passphrases', function () {
+    baseWebhook()
+        ->mutualTls('foobar', 'barfoo', 'foobarpassword', 'barfoopassword')
+        ->dispatch();
+
+    $baseRequest = baseRequest();
+
+    $baseRequest['options']['cert'] = ['foobar', 'foobarpassword'];
+    $baseRequest['options']['ssl_key'] = ['barfoo', 'barfoopassword'];
+
+    artisan('queue:work --once');
+
+    $this
+        ->testClient
+        ->assertRequestsMade([$baseRequest]);
+});
+
 it('will use a proxy', function () {
     baseWebhook()
         ->useProxy('https://proxy.test')
