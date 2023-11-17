@@ -35,11 +35,11 @@ class CallWebhookJob implements ShouldQueue
 
     public ?string $cert = null;
 
-    public ?string $certPassword = null;
+    public ?string $certPassphrase = null;
 
     public ?string $sslKey = null;
 
-    public ?string $sslKeyPassword = null;
+    public ?string $sslKeyPassphrase = null;
 
     public string $backoffStrategyClass;
 
@@ -151,8 +151,8 @@ class CallWebhookJob implements ShouldQueue
         ],
             $body,
             is_null($this->proxy) ? [] : ['proxy' => $this->proxy],
-            is_null($this->cert) ? [] : ['cert' => [$this->cert, $this->certPassword]],
-            is_null($this->sslKey) ? [] : ['ssl_key' => [$this->sslKey, $this->sslKeyPassword]]
+            is_null($this->cert) ? [] : ['cert' => [$this->cert, $this->certPassphrase]],
+            is_null($this->sslKey) ? [] : ['ssl_key' => [$this->sslKey, $this->sslKeyPassphrase]]
         ));
     }
 

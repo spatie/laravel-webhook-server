@@ -117,12 +117,12 @@ class WebhookCall
         return $this;
     }
 
-    public function mutualTls(string $cert, string $sslKey, ?string $certPassword = null, ?string $sslKeyPassword = null): self
+    public function mutualTls(string $certPath, string $sslKeyPath, ?string $certPassphrase = null, ?string $sslKeyPassphrase = null): self
     {
-        $this->callWebhookJob->cert = $cert;
-        $this->callWebhookJob->certPassword = $certPassword;
-        $this->callWebhookJob->sslKey = $sslKey;
-        $this->callWebhookJob->sslKeyPassword = $sslKeyPassword;
+        $this->callWebhookJob->cert = $certPath;
+        $this->callWebhookJob->certPassphrase = $certPassphrase;
+        $this->callWebhookJob->sslKey = $sslKeyPath;
+        $this->callWebhookJob->sslKeyPassphrase = $sslKeyPassphrase;
 
         return $this;
     }
