@@ -299,6 +299,8 @@ Mutual TLS authentication serves as a robust method for this purpose. Contrary t
 mutual TLS requires both the webhook endpoint (acting as the client) and the webhook provider (acting as the server) to authenticate each other. 
 This is achieved through an exchange of certificates during the TLS handshake, ensuring that both parties confirm each other's identity.
 
+> Note: If you need to include your own certificate authority, pass the certificate path to the `verifySsl()` method.
+
 ```php
 WebhookCall::create()
     ->mutualTls(

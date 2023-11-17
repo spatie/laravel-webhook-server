@@ -47,7 +47,7 @@ class CallWebhookJob implements ShouldQueue
 
     public array $headers = [];
 
-    public bool $verifySsl;
+    public string|bool $verifySsl;
 
     public bool $throwExceptionOnFailure;
 

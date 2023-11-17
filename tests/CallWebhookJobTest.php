@@ -218,6 +218,25 @@ it('will use mutual TLS with passphrases', function () {
         ->assertRequestsMade([$baseRequest]);
 });
 
+it('will use mutual TLS with certificate authority', function () {
+    baseWebhook()
+        ->mutualTls('foobar', 'barfoo')
+        ->verifySsl('foofoo')
+        ->dispatch();
+
+    $baseRequest = baseRequest();
+
+    $baseRequest['options']['cert'] = ['foobar', null];
+    $baseRequest['options']['ssl_key'] = ['barfoo', null];
+    $baseRequest['options']['verify'] = 'foofoo';
+
+    artisan('queue:work --once');
+
+    $this
+        ->testClient
+        ->assertRequestsMade([$baseRequest]);
+});
+
 it('will use a proxy', function () {
     baseWebhook()
         ->useProxy('https://proxy.test')

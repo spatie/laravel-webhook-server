@@ -170,7 +170,7 @@ class WebhookCall
         return $this;
     }
 
-    public function verifySsl(bool $verifySsl = true): self
+    public function verifySsl(bool|string $verifySsl = true): self
     {
         $this->callWebhookJob->verifySsl = $verifySsl;
 
