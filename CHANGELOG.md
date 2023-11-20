@@ -2,6 +2,18 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 3.7.0 - 2023-11-20
+
+### What's Changed
+
+- Adds support for mutual TLS by @JonErickson in https://github.com/spatie/laravel-webhook-server/pull/149
+
+### New Contributors
+
+- @JonErickson made their first contribution in https://github.com/spatie/laravel-webhook-server/pull/149
+
+**Full Changelog**: https://github.com/spatie/laravel-webhook-server/compare/3.6.0...3.7.0
+
 ## 3.6.0 - 2023-09-25
 
 ### What's Changed
