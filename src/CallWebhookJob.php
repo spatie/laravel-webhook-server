@@ -33,13 +33,21 @@ class CallWebhookJob implements ShouldQueue
 
     public int $requestTimeout;
 
+    public ?string $cert = null;
+
+    public ?string $certPassphrase = null;
+
+    public ?string $sslKey = null;
+
+    public ?string $sslKeyPassphrase = null;
+
     public string $backoffStrategyClass;
 
     public ?string $signerClass = null;
 
     public array $headers = [];
 
-    public bool $verifySsl;
+    public string|bool $verifySsl;
 
     public bool $throwExceptionOnFailure;
 
@@ -132,14 +140,20 @@ class CallWebhookJob implements ShouldQueue
     {
         $client = $this->getClient();
 
-        return $client->request($this->httpVerb, $this->webhookUrl, array_merge([
+        return $client->request($this->httpVerb, $this->webhookUrl, array_merge(
+            [
             'timeout' => $this->requestTimeout,
             'verify' => $this->verifySsl,
             'headers' => $this->headers,
             'on_stats' => function (TransferStats $stats) {
                 $this->transferStats = $stats;
             },
-        ], $body, is_null($this->proxy) ? [] : ['proxy' => $this->proxy]));
+        ],
+            $body,
+            is_null($this->proxy) ? [] : ['proxy' => $this->proxy],
+            is_null($this->cert) ? [] : ['cert' => [$this->cert, $this->certPassphrase]],
+            is_null($this->sslKey) ? [] : ['ssl_key' => [$this->sslKey, $this->sslKeyPassphrase]]
+        ));
     }
 
     protected function shouldBeRemovedFromQueue(): bool
