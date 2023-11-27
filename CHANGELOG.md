@@ -2,6 +2,20 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 3.8.0 - 2023-11-27
+
+3.8.0
+
+### What's Changed
+
+* Add event that is being fired upon the webhook's dispatch by @thannaske in https://github.com/spatie/laravel-webhook-server/pull/150
+
+### New Contributors
+
+* @thannaske made their first contribution in https://github.com/spatie/laravel-webhook-server/pull/150
+
+**Full Changelog**: https://github.com/spatie/laravel-webhook-server/compare/3.7.0...3.8.0
+
 ## 3.7.0 - 2023-11-20
 
 ### What's Changed
