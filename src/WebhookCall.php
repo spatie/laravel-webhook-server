@@ -5,6 +5,7 @@ namespace Spatie\WebhookServer;
 use Illuminate\Foundation\Bus\PendingDispatch;
 use Illuminate\Support\Str;
 use Spatie\WebhookServer\BackoffStrategy\BackoffStrategy;
+use Spatie\WebhookServer\Events\DispatchingWebhookCallEvent;
 use Spatie\WebhookServer\Exceptions\CouldNotCallWebhook;
 use Spatie\WebhookServer\Exceptions\InvalidBackoffStrategy;
 use Spatie\WebhookServer\Exceptions\InvalidSigner;
@@ -228,6 +229,16 @@ class WebhookCall
     public function dispatch(): PendingDispatch
     {
         $this->prepareForDispatch();
+
+        event(new DispatchingWebhookCallEvent(
+            $this->callWebhookJob->httpVerb,
+            $this->callWebhookJob->webhookUrl,
+            $this->callWebhookJob->payload,
+            $this->callWebhookJob->headers,
+            $this->callWebhookJob->meta,
+            $this->callWebhookJob->tags,
+            $this->callWebhookJob->uuid,
+        ));
 
         return dispatch($this->callWebhookJob);
     }
