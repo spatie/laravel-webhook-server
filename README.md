@@ -116,7 +116,7 @@ WebhookCall::create()
    ->dispatch();
 ```
 
-This will send a post request to `https://other-app.com/webhooks`. The body of the request will be JSON encoded version of the array passed to `payload`. The request will have a header called `Signature` that will contain a signature the receiving app can use [to verify](https://github.com/spatie/laravel-webhook-server#how-signing-requests-works) the payload hasn't been tampered with. Dispatching a webhook call will also fire a `WebhookCallDispatchedEvent`.
+This will send a post request to `https://other-app.com/webhooks`. The body of the request will be JSON encoded version of the array passed to `payload`. The request will have a header called `Signature` that will contain a signature the receiving app can use [to verify](https://github.com/spatie/laravel-webhook-server#how-signing-requests-works) the payload hasn't been tampered with. Dispatching a webhook call will also fire a `DispatchingWebhookCallEvent`.
 
 If the receiving app doesn't respond with a response code starting with `2`, the package will retry calling the webhook after 10 seconds. If that second attempt fails, the package will attempt to call the webhook a final time after 100 seconds. Should that attempt fail, the `FinalWebhookCallFailedEvent` will be raised.
 
@@ -384,9 +384,9 @@ WebhookCall::create()
 ### Events
 
 The package fires these events:
-- `WebhookCallDispatchedEvent`: the webhook call has been initially dispatched to the queue.
+- `DispatchingWebhookCallEvent`: right before the webhook call will be dispatched to the queue.
 - `WebhookCallSucceededEvent`: the remote app responded with a `2xx` response code.
-- `WebhookCallFailedEvent`: the remote app responded with a non `2xx` response code, or it did not respond at all
+- `WebhookCallFailedEvent`: the remote app responded with a non `2xx` response code, or it did not respond at all.
 - `FinalWebhookCallFailedEvent`: the final attempt to call the webhook failed.
 
 All these events have these properties:
@@ -399,7 +399,7 @@ All these events have these properties:
 - `tags`: the array of [tags](#adding-tags) used
 - `uuid`: a unique string to identify this call. This uuid will be the same for all attempts of a webhook call.
 
-Except for the `WebhookCallDispatchedEvent`, all events have these additional properties:
+Except for the `DispatchingWebhookCallEvent`, all events have these additional properties:
 
 - `attempt`: the attempt number
 - `response`: the response returned by the remote app. Can be an instance of `\GuzzleHttp\Psr7\Response` or `null`.

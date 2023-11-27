@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
-use Spatie\WebhookServer\Events\WebhookCallDispatchedEvent;
+use Spatie\WebhookServer\Events\DispatchingWebhookCallEvent;
 use function PHPUnit\Framework\assertTrue;
 use Spatie\WebhookServer\CallWebhookJob;
 use Spatie\WebhookServer\Exceptions\CouldNotCallWebhook;
@@ -158,12 +158,12 @@ it('can dispatch a job that calls a webhook unless condition false', function ()
     Queue::assertPushed(CallWebhookJob::class);
 });
 
-it('will fire an event when a webhook is initially dispatched', function () {
+it('will fire an event right before the webhook is initially dispatched', function () {
     Event::fake();
 
     $url = 'https://localhost';
 
     WebhookCall::create()->url($url)->useSecret('123')->dispatchIf(true);
 
-    Event::assertDispatched(WebhookCallDispatchedEvent::class, 1);
+    Event::assertDispatched(DispatchingWebhookCallEvent::class, 1);
 });

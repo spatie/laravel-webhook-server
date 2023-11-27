@@ -2,7 +2,7 @@
 
 namespace Spatie\WebhookServer\Events;
 
-class WebhookCallDispatchedEvent
+class DispatchingWebhookCallEvent
 {
     public function __construct(
         public string $httpVerb,

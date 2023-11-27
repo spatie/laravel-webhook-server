@@ -5,7 +5,7 @@ namespace Spatie\WebhookServer;
 use Illuminate\Foundation\Bus\PendingDispatch;
 use Illuminate\Support\Str;
 use Spatie\WebhookServer\BackoffStrategy\BackoffStrategy;
-use Spatie\WebhookServer\Events\WebhookCallDispatchedEvent;
+use Spatie\WebhookServer\Events\DispatchingWebhookCallEvent;
 use Spatie\WebhookServer\Exceptions\CouldNotCallWebhook;
 use Spatie\WebhookServer\Exceptions\InvalidBackoffStrategy;
 use Spatie\WebhookServer\Exceptions\InvalidSigner;
@@ -230,7 +230,7 @@ class WebhookCall
     {
         $this->prepareForDispatch();
 
-        event(new WebhookCallDispatchedEvent(
+        event(new DispatchingWebhookCallEvent(
             $this->callWebhookJob->httpVerb,
             $this->callWebhookJob->webhookUrl,
             $this->callWebhookJob->payload,
