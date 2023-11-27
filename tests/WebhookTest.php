@@ -2,9 +2,9 @@
 
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
-use Spatie\WebhookServer\Events\DispatchingWebhookCallEvent;
 use function PHPUnit\Framework\assertTrue;
 use Spatie\WebhookServer\CallWebhookJob;
+use Spatie\WebhookServer\Events\DispatchingWebhookCallEvent;
 use Spatie\WebhookServer\Exceptions\CouldNotCallWebhook;
 use Spatie\WebhookServer\Exceptions\InvalidBackoffStrategy;
 use Spatie\WebhookServer\Exceptions\InvalidSigner;
