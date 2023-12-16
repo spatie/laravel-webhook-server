@@ -44,7 +44,7 @@ return [
     ],
 
     /*
-     * If a call to a webhook takes longer that this amount of seconds
+     * If a call to a webhook takes longer this amount of seconds
      * the attempt will be considered failed.
      */
     'timeout_in_seconds' => 3,
@@ -60,7 +60,7 @@ return [
     'backoff_strategy' => \Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy::class,
 
     /*
-     * This class is used to dispatch webhooks on to the queue.
+     * This class is used to dispatch webhooks onto the queue.
      */
     'webhook_job' => \Spatie\WebhookServer\CallWebhookJob::class,
 
