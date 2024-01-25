@@ -1,10 +1,9 @@
 <?php
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\TransferStats;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
 use Mockery\MockInterface;
 use function Pest\Laravel\artisan;
 use function Pest\Laravel\mock;
@@ -70,13 +69,11 @@ beforeEach(function () {
     Event::fake();
 
     $this->testClient = new TestClient();
-
-    app()->bind(Client::class, function () {
-        return $this->testClient;
-    });
 });
 
 it('can make a webhook call', function () {
+    Http::fake();
+
     baseWebhook()->dispatch();
 
     artisan('queue:work --once');
@@ -87,6 +84,8 @@ it('can make a webhook call', function () {
 });
 
 it('can make a legacy synchronous webhook call', function () {
+    Http::fake();
+
     baseWebhook()->dispatchSync();
 
     $this
@@ -95,6 +94,8 @@ it('can make a legacy synchronous webhook call', function () {
 });
 
 it('can make a synchronous webhook call', function () {
+    Http::fake();
+
     baseWebhook()->dispatchSync();
 
     $this
@@ -103,6 +104,8 @@ it('can make a synchronous webhook call', function () {
 });
 
 it('can use a different HTTP verb', function () {
+    Http::fake();
+
     baseWebhook()
         ->useHttpVerb('put')
         ->dispatch();
@@ -117,6 +120,8 @@ it('can use a different HTTP verb', function () {
 });
 
 it('uses query option when http verb is get', function () {
+    Http::fake();
+
     baseWebhook()
         ->useHttpVerb('get')
         ->dispatch();
@@ -131,6 +136,8 @@ it('uses query option when http verb is get', function () {
 });
 
 it('can add extra headers', function () {
+    Http::fake();
+
     $extraHeaders = [
         'Content-Type' => 'application/json',
         'header1' => 'value1',
@@ -156,6 +163,8 @@ it('can add extra headers', function () {
 });
 
 it('will not set a signature header when the request should not be signed', function () {
+    Http::fake();
+
     baseWebhook()
         ->doNotSign()
         ->dispatch();
@@ -172,6 +181,8 @@ it('will not set a signature header when the request should not be signed', func
 });
 
 it('can disable verifying SSL', function () {
+    Http::fake();
+
     baseWebhook()->doNotVerifySsl()->dispatch();
 
     $baseRequest = baseRequest();
@@ -185,6 +196,8 @@ it('can disable verifying SSL', function () {
 });
 
 it('will use mutual TLS without passphrases', function () {
+    Http::fake();
+
     baseWebhook()
         ->mutualTls('foobar', 'barfoo')
         ->dispatch();
@@ -202,6 +215,8 @@ it('will use mutual TLS without passphrases', function () {
 });
 
 it('will use mutual TLS with passphrases', function () {
+    Http::fake();
+
     baseWebhook()
         ->mutualTls('foobar', 'barfoo', 'foobarpassword', 'barfoopassword')
         ->dispatch();
@@ -219,6 +234,8 @@ it('will use mutual TLS with passphrases', function () {
 });
 
 it('will use mutual TLS with certificate authority', function () {
+    Http::fake();
+
     baseWebhook()
         ->mutualTls('foobar', 'barfoo')
         ->verifySsl('foofoo')
@@ -238,6 +255,8 @@ it('will use mutual TLS with certificate authority', function () {
 });
 
 it('will use a proxy', function () {
+    Http::fake();
+
     baseWebhook()
         ->useProxy('https://proxy.test')
         ->dispatch();
@@ -254,6 +273,8 @@ it('will use a proxy', function () {
 });
 
 it('will use a proxy array', function () {
+    Http::fake();
+
     baseWebhook()
         ->useProxy([
             'http' => 'http://proxy.test',
@@ -276,14 +297,16 @@ it('will use a proxy array', function () {
 });
 
 test('by default it will retry 3 times with the exponential backoff strategy', function () {
-    $this->testClient->letEveryRequestFail();
+    Http::fake([
+        '*' => Http::response(status: 500)
+    ]);
 
     baseWebhook()->dispatch();
 
     mock(ExponentialBackoffStrategy::class, function (MockInterface $mock) {
-        $mock->shouldReceive('waitInSecondsAfterAttempt')->withArgs([1])->once()->andReturns(10);
-        $mock->shouldReceive('waitInSecondsAfterAttempt')->withArgs([2])->once()->andReturns(100);
-        $mock->shouldReceive('waitInSecondsAfterAttempt')->withArgs([3])->never();
+        $mock->expects('waitInSecondsAfterAttempt')->withArgs([1])->andReturns(10);
+        $mock->expects('waitInSecondsAfterAttempt')->withArgs([2])->andReturns(100);
+        $mock->allows('waitInSecondsAfterAttempt')->withArgs([3])->never();
 
         return $mock;
     });
@@ -313,7 +336,9 @@ test('by default it will retry 3 times with the exponential backoff strategy', f
 });
 
 it('sets the response field on request failure', function () {
-    $this->testClient->throwRequestException();
+    Http::fake([
+        '*' => Http::response(status: 500)
+    ]);
 
     baseWebhook()->dispatch();
 
@@ -326,7 +351,9 @@ it('sets the response field on request failure', function () {
 });
 
 it('sets the error fields on connection failure', function () {
-    $this->testClient->throwConnectionException();
+    Http::fake(
+        ['*' => Http::response(status: 500)]
+    );
 
     baseWebhook()->dispatch();
 
@@ -341,20 +368,26 @@ it('sets the error fields on connection failure', function () {
 });
 
 it('generate job failed event if an exception throws and throw exception on failure config is set', function () {
-    $this->testClient->throwConnectionException();
+    Http::fake(
+        [
+            '*' => Http::response(status: 500)
+        ]
+    );
 
     baseWebhook()->maximumTries(1)->throwExceptionOnFailure()->dispatch();
 
     artisan('queue:work --once');
 
     Event::assertDispatched(JobFailed::class, function (JobFailed $event) {
-        expect($event->exception)->toBeInstanceOf(ConnectException::class);
+        expect($event->exception)->toBeInstanceOf(Illuminate\Http\Client\RequestException::class);
 
         return true;
     });
 });
 
 it('send raw body data if rawBody is set', function () {
+    Http::fake();
+
     $testBody = "<xml>anotherOption</xml>";
     WebhookCall::create()
         ->url('https://example.com/webhooks')
