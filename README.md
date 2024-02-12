@@ -63,7 +63,7 @@ return [
     'headers' => [],
 
     /*
-     * If a call to a webhook takes longer that this amount of seconds
+     * If a call to a webhook takes longer this amount of seconds
      * the attempt will be considered failed.
      */
     'timeout_in_seconds' => 3,
@@ -79,7 +79,7 @@ return [
     'backoff_strategy' => \Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy::class,
         
     /*
-     * This class is used to dispatch webhooks on to the queue.
+     * This class is used to dispatch webhooks onto the queue.
      */
     'webhook_job' => \Spatie\WebhookServer\CallWebhookJob::class,
 
@@ -122,7 +122,7 @@ If the receiving app doesn't respond with a response code starting with `2`, the
 
 ### Send webhook synchronously
 
-If you would like to call the webhook immediately (synchronously), you may use the dispatchSync method. When using this method, the webhook will not be queued and will be run immediately. This can be helpfull in situation where sending the webhook is part of a bigger job that already has been queued.
+If you would like to call the webhook immediately (synchronously), you may use the dispatchSync method. When using this method, the webhook will not be queued and will be run immediately. This can be helpful in situations where sending the webhook is part of a bigger job that already has been queued.
 
 ```php
 WebhookCall::create()
@@ -132,7 +132,7 @@ WebhookCall::create()
 
 ### Conditionally sending webhooks
 
-If you would like to conditionally dispatch a webhook, you may use the `dispatchIf`, `dispatchUnless`, `dispatchSyncIf` and `dispatchSyncUnless` methods:
+If you would like to conditionally dispatch a webhook, you may use the `dispatchIf`, `dispatchUnless`, `dispatchSyncIf`, and `dispatchSyncUnless` methods:
 
 ```php
 WebhookCall::create()
@@ -152,11 +152,11 @@ WebhookCall::create()
    ->dispatchSyncUnless($condition);
 ```
 
-### How signing requests works
+### How signing requests work
 
 When setting up, it's common to generate, store, and share a secret between your app and the app that wants to receive webhooks. Generating the secret could be done with `Illuminate\Support\Str::random()`, but it's entirely up to you. The package will use the secret to sign a webhook call.
 
-By default, the package will add a header called `Signature` that will contain a signature the receiving app can use the payload hasn't been tampered with. This is how that signature is calculated:
+By default, the package will add a header called `Signature` that will contain a signature the receiving app can use if the payload hasn't been tampered with. This is how that signature is calculated:
 
 ```php
 // payload is the array passed to the `payload` method of the webhook
@@ -169,7 +169,7 @@ $signature = hash_hmac('sha256', $payloadJson, $secret);
 
 ### Skip signing request
 
-We don't recommend this, but if you don't want the web hook request to be signed call the `doNotSign` method.
+We don't recommend this, but if you don't want the webhook request to be signed call the `doNotSign` method.
 
 ```php
 WebhookCall::create()
@@ -231,7 +231,7 @@ WebhookCall::create()
     ->dispatch();
 ```
 
-To not hammer the remote app we'll wait some time between each attempt. By default, we wait 10 seconds between the first and second attempt, 100 seconds between the third and the fourth, 1000 between the fourth and the fifth and so on. The maximum amount of seconds that we'll wait is 100 000, which is about 27 hours. This behavior is implemented in the default `ExponentialBackoffStrategy`.
+To not hammer the remote app we'll wait some time between each attempt. By default, we wait 10 seconds between the first and second attempts, 100 seconds between the third and the fourth, 1000 between the fourth and the fifth, and so on. The maximum amount of seconds that we'll wait is 100 000, which is about 27 hours. This behavior is implemented in the default `ExponentialBackoffStrategy`.
 
 You can define your own backoff strategy by creating a class that implements `Spatie\WebhookServer\BackoffStrategy\BackoffStrategy`. This is what that interface looks like:
 
@@ -315,7 +315,7 @@ The proxy specification follows the [guzzlehttp proxy format](https://docs.guzzl
 
 ### Verifying the SSL certificate of the receiving app
 
-When using an URL that starts with `https://` the package will verify if the SSL certificate of the receiving party is valid. If it is not, we will consider the webhook call failed. We don't recommend this, but you can turn off this verification by setting the `verify_ssl` key in the `webhook-server` config file to `false`.
+When using a URL that starts with `https://` the package will verify if the SSL certificate of the receiving party is valid. If it is not, we will consider the webhook call failed. We don't recommend this, but you can turn off this verification by setting the `verify_ssl` key in the `webhook-server` config file to `false`.
 
 You can also disable the verification per webhook call with the `doNotVerifySsl` method.
 
@@ -371,7 +371,7 @@ or activate the `throw_exception_on_failure` global option of the `webhook-serve
 
 By default, all webhooks will transform the payload into JSON. Instead of sending JSON, you can send any string by using the `sendRawBody(string $body)` option instead.
 
-Due to type mismatch in the Signer API, it is currently not support to sign raw data requests.
+Due to a type mismatch in the Signer API, it is currently not supported to sign raw data requests.
 When using the _sendRawBody_ option, you will receive a _string_ payload in the WebhookEvents.
 ```php
 WebhookCall::create()
