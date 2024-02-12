@@ -2,6 +2,19 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 3.8.1 - 2024-02-12
+
+### What's Changed
+
+* Add support for laravel 11 by @shuvroroy in https://github.com/spatie/laravel-webhook-server/pull/154
+* Corrected typos in README.md and webhook-server.php by @OussamaMater in https://github.com/spatie/laravel-webhook-server/pull/151
+
+### New Contributors
+
+* @OussamaMater made their first contribution in https://github.com/spatie/laravel-webhook-server/pull/151
+
+**Full Changelog**: https://github.com/spatie/laravel-webhook-server/compare/3.8.0...3.8.1
+
 ## 3.8.0 - 2023-11-27
 
 3.8.0
