@@ -3,50 +3,24 @@
 namespace Spatie\WebhookServer\Tests\TestClasses;
 
 use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Promise\PromiseInterface;
-use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
-use PHPUnit\Framework\Assert;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
-class TestClient implements ClientInterface
+class TestClient
 {
     protected array $requests = [];
 
-    protected int $useResponseCode = 200;
-
-    protected bool $throwRequestException = false;
-
     protected bool $throwConnectionException = false;
-
-    public function request(string $method, $url = '', array $options = []): ResponseInterface
-    {
-        $this->requests[] = compact('method', 'url', 'options');
-
-        if ($this->throwRequestException) {
-            throw new RequestException(
-                'Request failed exception',
-                new Request($method, $url),
-                new Response(500)
-            );
-        }
-
-        if ($this->throwConnectionException) {
-            throw new ConnectException(
-                'Request timeout',
-                new Request($method, $url),
-            );
-        }
-
-        return new Response($this->useResponseCode);
-    }
 
     public function assertRequestCount(int $expectedCount)
     {
-        Assert::assertCount($expectedCount, $this->requests);
+        Http::assertSentCount($expectedCount);
 
         return $this;
     }
@@ -54,22 +28,14 @@ class TestClient implements ClientInterface
     public function assertRequestsMade(array $expectedRequests)
     {
         $this->assertRequestCount(count($expectedRequests));
-
         foreach ($expectedRequests as $index => $expectedRequest) {
-            foreach ($expectedRequest as $name => $value) {
-                Assert::assertEquals($value, $this->requests[$index][$name]);
-            }
+            Http::assertSent(function (Request $request) use ($expectedRequest) {
+                return $this->assertUrl($request, $expectedRequest)  &&
+                    $request->hasHeaders($expectedRequest['options']['headers']) &&
+                    $this->assertData($request, $expectedRequest) &&
+                    $request->method() === strtoupper($expectedRequest['method']);
+            });
         }
-    }
-
-    public function letEveryRequestFail()
-    {
-        $this->useResponseCode = 500;
-    }
-
-    public function throwRequestException()
-    {
-        $this->throwRequestException = true;
     }
 
     public function throwConnectionException()
@@ -77,23 +43,23 @@ class TestClient implements ClientInterface
         $this->throwConnectionException = true;
     }
 
-    public function send(RequestInterface $request, array $options = []): ResponseInterface
+    private function assertUrl(Request $request, $expectedRequest): bool
     {
-        throw new \BadMethodCallException('Not meant to be used yet.');
+        if ($request->method() === 'GET') {
+            return Str::of($request->url())
+                ->contains(http_build_query(
+                    $expectedRequest['options']['query'] ?? []));
+        }
+        return $request->url() === $expectedRequest['url'];
     }
 
-    public function sendAsync(RequestInterface $request, array $options = []): PromiseInterface
+    private function assertData(Request $request, $expectedRequest): bool
     {
-        throw new \BadMethodCallException('Not meant to be used yet.');
-    }
-
-    public function requestAsync(string $method, $uri, array $options = []): PromiseInterface
-    {
-        throw new \BadMethodCallException('Not meant to be used yet.');
-    }
-
-    public function getConfig(?string $option = null)
-    {
-        throw new \BadMethodCallException('Not meant to be used yet.');
+        $data = empty($expectedRequest['options']['body']) ? '' : $expectedRequest['options']['body'];
+        if ($request->method() === 'GET') {
+            $data = $expectedRequest['options']['query'];
+            return $request->data() === $data;
+        }
+        return $request->data()['body'] ===  $data;
     }
 }

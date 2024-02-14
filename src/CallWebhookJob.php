@@ -3,18 +3,20 @@
 namespace Spatie\WebhookServer;
 
 use Exception;
-use GuzzleHttp\Client;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\Response as GuzzleResponse;
 use GuzzleHttp\TransferStats;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\RequestException;
+use Illuminate\Http\Client\Response as HttpClientResponse;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Spatie\WebhookServer\BackoffStrategy\BackoffStrategy;
 use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallSucceededEvent;
@@ -47,6 +49,8 @@ class CallWebhookJob implements ShouldQueue
 
     public array $headers = [];
 
+    public array $options = [];
+
     public string|bool $verifySsl;
 
     public bool $throwExceptionOnFailure;
@@ -72,7 +76,7 @@ class CallWebhookJob implements ShouldQueue
 
     protected ?TransferStats $transferStats = null;
 
-    public function handle()
+    public function handle(): void
     {
         $lastAttempt = $this->attempts() >= $this->tries;
 
@@ -91,19 +95,15 @@ class CallWebhookJob implements ShouldQueue
 
             return;
         } catch (Exception $exception) {
-            if ($exception instanceof RequestException) {
-                $this->response = $exception->getResponse();
-                $this->errorType = get_class($exception);
-                $this->errorMessage = $exception->getMessage();
-            }
+            $this->errorType = get_class($exception);
+            $this->errorMessage = $exception->getMessage();
 
-            if ($exception instanceof ConnectException) {
-                $this->errorType = get_class($exception);
-                $this->errorMessage = $exception->getMessage();
+            if ($exception instanceof RequestException) {
+                $this->response = $this->toGuzzleResponse($exception->response);
             }
 
             if (! $lastAttempt) {
-                /** @var \Spatie\WebhookServer\BackoffStrategy\BackoffStrategy $backoffStrategy */
+                /** @var BackoffStrategy $backoffStrategy */
                 $backoffStrategy = app($this->backoffStrategyClass);
 
                 $waitInSeconds = $backoffStrategy->waitInSecondsAfterAttempt($this->attempts());
@@ -121,6 +121,19 @@ class CallWebhookJob implements ShouldQueue
         }
     }
 
+    protected function toGuzzleResponse(HttpClientResponse $response): GuzzleResponse
+    {
+        $psrResponse = $response->toPsrResponse();
+
+        return new GuzzleResponse(
+            $psrResponse->getStatusCode(),
+            $psrResponse->getHeaders(),
+            $psrResponse->getBody(),
+            $psrResponse->getProtocolVersion(),
+            $psrResponse->getReasonPhrase()
+        );
+    }
+
     public function tags(): array
     {
         return $this->tags;
@@ -131,29 +144,35 @@ class CallWebhookJob implements ShouldQueue
         return $this->response;
     }
 
-    protected function getClient(): ClientInterface
-    {
-        return app(Client::class);
-    }
-
     protected function createRequest(array $body): Response
     {
-        $client = $this->getClient();
+        $request = Http::withHeaders($this->headers)
+            ->timeout($this->requestTimeout)
+            ->unless($this->outputType === 'JSON', function (PendingRequest $request) {
+                $request->withHeaders([
+                    'Content-Type' => "text/xml;charset=utf-8"
+                ]);
+            })
+            ->unless($this->verifySsl, fn(PendingRequest $request) => $request->withoutVerifying());
 
-        return $client->request($this->httpVerb, $this->webhookUrl, array_merge(
-            [
-            'timeout' => $this->requestTimeout,
-            'verify' => $this->verifySsl,
-            'headers' => $this->headers,
-            'on_stats' => function (TransferStats $stats) {
-                $this->transferStats = $stats;
-            },
-        ],
-            $body,
+        $request->withOptions(array_merge($this->options, [
             is_null($this->proxy) ? [] : ['proxy' => $this->proxy],
             is_null($this->cert) ? [] : ['cert' => [$this->cert, $this->certPassphrase]],
             is_null($this->sslKey) ? [] : ['ssl_key' => [$this->sslKey, $this->sslKeyPassphrase]]
-        ));
+        ]));
+
+        $response = match (strtoupper($this->httpVerb)) {
+            'GET'  => $request->get($this->webhookUrl, $body['query']),
+            'POST' => $request->post($this->webhookUrl, $body),
+            'PUT'  => $request->put($this->webhookUrl, $body),
+            'PATCH'  => $request->patch($this->webhookUrl, $body),
+        };
+
+
+        $this->transferStats = $response->transferStats;
+        $response->throw();
+
+        return $this->toGuzzleResponse($response);
     }
 
     protected function shouldBeRemovedFromQueue(): bool
