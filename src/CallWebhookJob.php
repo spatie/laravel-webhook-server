@@ -3,6 +3,7 @@
 namespace Spatie\WebhookServer;
 
 use Exception;
+use Throwable;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ConnectException;
@@ -185,5 +186,12 @@ class CallWebhookJob implements ShouldQueue
             "RAW" => $this->payload,
             default => json_encode($this->payload),
         };
+    }
+
+    public function failed(Throwable $e)
+    {
+        if ($this->throwExceptionOnFailure) {
+            throw $e;
+        }
     }
 }
