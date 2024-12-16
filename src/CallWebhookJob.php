@@ -3,7 +3,6 @@
 namespace Spatie\WebhookServer;
 
 use Exception;
-use Throwable;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ConnectException;
@@ -19,6 +18,7 @@ use Illuminate\Support\Str;
 use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallSucceededEvent;
+use Throwable;
 
 class CallWebhookJob implements ShouldQueue
 {
