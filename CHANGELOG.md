@@ -2,6 +2,18 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 3.8.2 - 2024-12-16
+
+### What's Changed
+
+* Fix CallWebhookJob behaviour when throwExceptionOnFailure is true by @cristian-fleischer in https://github.com/spatie/laravel-webhook-server/pull/161
+
+### New Contributors
+
+* @cristian-fleischer made their first contribution in https://github.com/spatie/laravel-webhook-server/pull/161
+
+**Full Changelog**: https://github.com/spatie/laravel-webhook-server/compare/3.8.1...3.8.2
+
 ## 3.8.1 - 2024-02-12
 
 ### What's Changed
