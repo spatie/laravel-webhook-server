@@ -2,6 +2,18 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 3.8.3 - 2025-02-14
+
+### What's Changed
+
+* Laravel 12.x Compatibility by @laravel-shift in https://github.com/spatie/laravel-webhook-server/pull/162
+
+### New Contributors
+
+* @laravel-shift made their first contribution in https://github.com/spatie/laravel-webhook-server/pull/162
+
+**Full Changelog**: https://github.com/spatie/laravel-webhook-server/compare/3.8.2...3.8.3
+
 ## 3.8.2 - 2024-12-16
 
 ### What's Changed
