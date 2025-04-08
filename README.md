@@ -1,7 +1,17 @@
-# Send webhooks from Laravel apps
+<div align="left">
+    <a href="https://spatie.be/open-source?utm_source=github&utm_medium=banner&utm_campaign=laravel-webhook-server">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="https://spatie.be/packages/header/laravel-webhook-server/html/dark.webp">
+        <img alt="Logo for laravel-webhook-server" src=" https://spatie.be/packages/header/laravel-webhook-server/html/light.webp" height="190">
+      </picture>
+    </a>
+
+<h1>Send webhooks from Laravel apps</h1>
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/spatie/laravel-webhook-server.svg?style=flat-square)](https://packagist.org/packages/spatie/laravel-webhook-server)
 [![run-tests](https://github.com/spatie/laravel-webhook-server/actions/workflows/run-tests.yml/badge.svg)](https://github.com/spatie/laravel-webhook-server/actions/workflows/run-tests.yml)[![Total Downloads](https://img.shields.io/packagist/dt/spatie/laravel-webhook-server.svg?style=flat-square)](https://packagist.org/packages/spatie/laravel-webhook-server)
+    
+</div>
 
 A webhook is a way for an app to provide information to another app about a particular event. The way the two apps communicate is with a simple HTTP request. 
 
