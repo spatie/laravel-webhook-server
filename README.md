@@ -2,7 +2,7 @@
     <a href="https://spatie.be/open-source?utm_source=github&utm_medium=banner&utm_campaign=laravel-webhook-server">
       <picture>
         <source media="(prefers-color-scheme: dark)" srcset="https://spatie.be/packages/header/laravel-webhook-server/html/dark.webp">
-        <img alt="Logo for laravel-webhook-server" src=" https://spatie.be/packages/header/laravel-webhook-server/html/light.webp" height="190">
+        <img alt="Logo for laravel-webhook-server" src="https://spatie.be/packages/header/laravel-webhook-server/html/light.webp" height="190">
       </picture>
     </a>
 
