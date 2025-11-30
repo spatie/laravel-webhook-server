@@ -37,6 +37,11 @@ return [
     'signature_header_name' => 'Signature',
 
     /*
+     * This is the name of the header where the timestamp will be added.
+     */
+    'timestamp_header_name' => 'Timestamp',
+
+    /*
      * These are the headers that will be added to all webhook requests.
      */
     'headers' => [

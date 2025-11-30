@@ -50,6 +50,8 @@ class CallWebhookJob implements ShouldQueue
 
     public string|bool $verifySsl;
 
+    public bool $useTimestamp = false;
+
     public bool $throwExceptionOnFailure;
 
     /** @var string|null */
@@ -81,6 +83,10 @@ class CallWebhookJob implements ShouldQueue
             $body = strtoupper($this->httpVerb) === 'GET'
                 ? ['query' => $this->payload]
                 : ['body' => $this->generateBody()];
+
+            if ($this->useTimestamp) {
+                $this->addTimestampToHeaders();
+            }
 
             $this->response = $this->createRequest($body);
 
@@ -186,6 +192,12 @@ class CallWebhookJob implements ShouldQueue
             "RAW" => $this->payload,
             default => json_encode($this->payload),
         };
+    }
+
+    private function addTimestampToHeaders(): void
+    {
+        $timestampHeader = config('webhook-server.timestamp_header_name');
+        $this->headers[$timestampHeader] = now()->timestamp;
     }
 
     public function failed(Throwable $e)
