@@ -229,6 +229,7 @@ class WebhookCall
     public function useTimestamp(bool $use = true): self
     {
         $this->callWebhookJob->useTimestamp = $use;
+
         return $this;
     }
 

@@ -421,4 +421,3 @@ it('sets the timestamp header when using the timestamp option', function () {
         ->testClient
         ->assertRequestsMade([$baseRequest]);
 });
-
