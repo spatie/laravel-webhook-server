@@ -194,7 +194,7 @@ class CallWebhookJob implements ShouldQueue
         };
     }
 
-    private function addTimestampToHeaders(): void
+    protected function addTimestampToHeaders(): void
     {
         $timestampHeader = config('webhook-server.timestamp_header_name');
         $this->headers[$timestampHeader] = now()->timestamp;

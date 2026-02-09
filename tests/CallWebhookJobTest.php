@@ -403,7 +403,6 @@ it('send raw body data in event if rawBody is set', function () {
     });
 });
 
-
 it('sets the timestamp header when using the timestamp option', function () {
     baseWebhook()
         ->useTimestamp()
