@@ -2,6 +2,26 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 3.9.0 - 2026-02-09
+
+### What's new
+
+- Add support for optional timestamp header in webhooks (#165)
+- Add PHP 8.4 and 8.5 to test matrix
+
+The timestamp header helps prevent replay attacks. You can enable it by calling `useTimestamp()`:
+
+```php
+WebhookCall::create()
+    ->useTimestamp()
+    ->url('https://example.com/webhooks')
+    ->useSecret('my-secret')
+    ->payload(['key' => 'value'])
+    ->dispatch();
+
+```
+The header name defaults to `Timestamp` and can be configured via the `timestamp_header_name` config key.
+
 ## 3.8.3 - 2025-02-14
 
 ### What's Changed
