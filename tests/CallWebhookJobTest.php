@@ -402,3 +402,23 @@ it('send raw body data in event if rawBody is set', function () {
         return true;
     });
 });
+
+
+it('sets the timestamp header when using the timestamp option', function () {
+    baseWebhook()
+        ->useTimestamp()
+        ->dispatch();
+
+    $baseRequest = baseRequest();
+
+    $timestampHeaderName = config('webhook-server.timestamp_header_name');
+
+    $baseRequest['options']['headers'][$timestampHeaderName] = TestTime::now()->getTimestamp();
+
+    artisan('queue:work --once');
+
+    $this
+        ->testClient
+        ->assertRequestsMade([$baseRequest]);
+});
+

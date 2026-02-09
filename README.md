@@ -66,6 +66,11 @@ return [
      * This is the name of the header where the signature will be added.
      */
     'signature_header_name' => 'Signature',
+    
+    /*
+     * This is the name of the header where the timestamp will be added.
+     */
+    'timestamp_header_name' => 'Timestamp',
 
     /*
      * These are the headers that will be added to all webhook requests.
@@ -218,6 +223,21 @@ WebhookCall::create()
 ```
 
 If you want to customize the name of the header, you don't need to use a custom signer, but you can change the value in the `signature_header_name` in the `webhook-server` config file.
+
+### Use Timestamp
+
+This is highly recommended to help prevent replay attacks.
+
+Timestamping is disabled by default, but you can enable it by calling `useTimestamp()` method.
+
+```php
+WebhookCall::create()
+    ->useTimestamp()
+    ...
+    ->dispatch();
+```
+
+By calling this method, the `Timestamp` header will be set.
 
 ### Retrying failed webhooks
 

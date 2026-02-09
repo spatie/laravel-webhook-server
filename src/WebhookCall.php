@@ -226,6 +226,12 @@ class WebhookCall
         return $this;
     }
 
+    public function useTimestamp(bool $use = true): self
+    {
+        $this->callWebhookJob->useTimestamp = $use;
+        return $this;
+    }
+
     public function dispatch(): PendingDispatch
     {
         $this->prepareForDispatch();
