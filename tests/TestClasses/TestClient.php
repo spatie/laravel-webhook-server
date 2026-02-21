@@ -57,7 +57,22 @@ class TestClient implements ClientInterface
 
         foreach ($expectedRequests as $index => $expectedRequest) {
             foreach ($expectedRequest as $name => $value) {
-                Assert::assertEquals($value, $this->requests[$index][$name]);
+                if ($name === 'options') {
+                    $expectedOptions = $value;
+                    $actualOptions = $this->requests[$index][$name];
+
+                    // Compare closures by checking they are both callable
+                    foreach ($expectedOptions as $key => $option) {
+                        if ($option instanceof \Closure) {
+                            Assert::assertInstanceOf(\Closure::class, $actualOptions[$key]);
+                            unset($expectedOptions[$key], $actualOptions[$key]);
+                        }
+                    }
+
+                    Assert::assertEquals($expectedOptions, $actualOptions);
+                } else {
+                    Assert::assertEquals($value, $this->requests[$index][$name]);
+                }
             }
         }
     }
