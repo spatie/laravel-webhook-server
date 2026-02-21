@@ -2,6 +2,12 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 3.10.0 - 2026-02-21
+
+### What's Changed
+
+- Add Laravel 13 support
+
 ## 3.9.0 - 2026-02-09
 
 ### What's new
@@ -18,6 +24,7 @@ WebhookCall::create()
     ->useSecret('my-secret')
     ->payload(['key' => 'value'])
     ->dispatch();
+
 
 ```
 The header name defaults to `Timestamp` and can be configured via the `timestamp_header_name` config key.
