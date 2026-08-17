@@ -2,9 +2,9 @@
 
 namespace Spatie\WebhookServer\Exceptions;
 
-use Exception;
+use LogicException;
 
-class CouldNotCallWebhook extends Exception
+class CouldNotCallWebhook extends LogicException
 {
     public static function urlNotSet(): self
     {

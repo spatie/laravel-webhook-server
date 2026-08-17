@@ -2,8 +2,8 @@
 
 namespace Spatie\WebhookServer\Events;
 
-use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\TransferStats;
+use Illuminate\Http\Client\Response;
 
 abstract class WebhookCallEvent
 {

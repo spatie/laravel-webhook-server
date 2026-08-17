@@ -26,7 +26,7 @@ class WebhookCall
 
     private array $payload = [];
 
-    private $signWebhook = true;
+    private bool $signWebhook = true;
 
     public static function create(): self
     {
@@ -81,6 +81,11 @@ class WebhookCall
     public function getUuid(): string
     {
         return $this->uuid;
+    }
+
+    public function getUrl(): ?string
+    {
+        return $this->callWebhookJob->webhookUrl;
     }
 
     public function onQueue(?string $queue): self

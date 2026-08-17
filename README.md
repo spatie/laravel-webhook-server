@@ -29,6 +29,8 @@ We highly appreciate you sending us a postcard from your hometown, mentioning wh
 
 ## Installation
 
+This package requires PHP 8.4 and Laravel 13. Use [v3](https://github.com/spatie/laravel-webhook-server/tree/3.10.0) if you are on an older version.
+
 You can install the package via composer:
 
 ```bash
@@ -432,7 +434,10 @@ All these events have these properties:
 Except for the `DispatchingWebhookCallEvent`, all events have these additional properties:
 
 - `attempt`: the attempt number
-- `response`: the response returned by the remote app. Can be an instance of `\GuzzleHttp\Psr7\Response` or `null`.
+- `response`: the response returned by the remote app. Can be an instance of `\Illuminate\Http\Client\Response` or `null`.
+- `errorType`: the class name of the exception that made the attempt fail, or `null` when the attempt succeeded
+- `errorMessage`: the message of that exception, or `null` when the attempt succeeded
+- `transferStats`: an instance of `\GuzzleHttp\TransferStats` holding the timings of the request, or `null`
 
 ## Testing
 
@@ -477,6 +482,27 @@ class TestFile extends TestCase
         ... Perform webhook call ...
 
         Queue::assertPushed(CallWebhookJob::class);
+    }
+}
+```
+
+### Http
+Because webhooks are sent with Laravel's HTTP client, you can also let the job run and assert on the request it made.
+
+```php 
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
+use Tests\TestCase;
+
+class TestFile extends TestCase
+{
+    public function testWebhookIsSent()
+    {
+        Http::fake();
+
+        ... Perform webhook call ...
+
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://other-app.com/webhooks');
     }
 }
 ```

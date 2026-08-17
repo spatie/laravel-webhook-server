@@ -3,18 +3,17 @@
 namespace Spatie\WebhookServer;
 
 use Exception;
-use GuzzleHttp\Client;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\TransferStats;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\RequestException;
+use Illuminate\Http\Client\Response;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Http;
+use Spatie\WebhookServer\BackoffStrategy\BackoffStrategy;
 use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallSucceededEvent;
@@ -65,7 +64,7 @@ class CallWebhookJob implements ShouldQueue
 
     public string $uuid = '';
 
-    public string $outputType = "JSON";
+    public string $outputType = 'JSON';
 
     protected ?Response $response = null;
 
@@ -75,42 +74,32 @@ class CallWebhookJob implements ShouldQueue
 
     protected ?TransferStats $transferStats = null;
 
-    public function handle()
+    public function handle(): void
     {
         $lastAttempt = $this->attempts() >= $this->tries;
 
         try {
-            $body = strtoupper($this->httpVerb) === 'GET'
-                ? ['query' => $this->payload]
-                : ['body' => $this->generateBody()];
-
             if ($this->useTimestamp) {
                 $this->addTimestampToHeaders();
             }
 
-            $this->response = $this->createRequest($body);
-
-            if (! Str::startsWith($this->response->getStatusCode(), 2)) {
-                throw new Exception('Webhook call failed');
-            }
+            $this->response = $this->createRequest()->send(
+                strtoupper($this->httpVerb),
+                $this->webhookUrl,
+                $this->isGetRequest() ? ['query' => $this->payload] : [],
+            );
 
             $this->dispatchEvent(WebhookCallSucceededEvent::class);
-
-            return;
         } catch (Exception $exception) {
             if ($exception instanceof RequestException) {
-                $this->response = $exception->getResponse();
-                $this->errorType = get_class($exception);
-                $this->errorMessage = $exception->getMessage();
+                $this->response = $exception->response;
             }
 
-            if ($exception instanceof ConnectException) {
-                $this->errorType = get_class($exception);
-                $this->errorMessage = $exception->getMessage();
-            }
+            $this->errorType = $exception::class;
+            $this->errorMessage = $exception->getMessage();
 
             if (! $lastAttempt) {
-                /** @var \Spatie\WebhookServer\BackoffStrategy\BackoffStrategy $backoffStrategy */
+                /** @var BackoffStrategy $backoffStrategy */
                 $backoffStrategy = app($this->backoffStrategyClass);
 
                 $waitInSeconds = $backoffStrategy->waitInSecondsAfterAttempt($this->attempts());
@@ -138,29 +127,31 @@ class CallWebhookJob implements ShouldQueue
         return $this->response;
     }
 
-    protected function getClient(): ClientInterface
+    protected function createRequest(): PendingRequest
     {
-        return app(Client::class);
+        $request = Http::withHeaders($this->headers)
+            ->timeout($this->requestTimeout)
+            ->withOptions($this->requestOptions())
+            ->throw();
+
+        if ($this->isGetRequest()) {
+            return $request;
+        }
+
+        return $request->withBody($this->generateBody(), $this->contentType());
     }
 
-    protected function createRequest(array $body): Response
+    protected function requestOptions(): array
     {
-        $client = $this->getClient();
-
-        return $client->request($this->httpVerb, $this->webhookUrl, array_merge(
-            [
-            'timeout' => $this->requestTimeout,
+        return [
             'verify' => $this->verifySsl,
-            'headers' => $this->headers,
             'on_stats' => function (TransferStats $stats) {
                 $this->transferStats = $stats;
             },
-        ],
-            $body,
-            is_null($this->proxy) ? [] : ['proxy' => $this->proxy],
-            is_null($this->cert) ? [] : ['cert' => [$this->cert, $this->certPassphrase]],
-            is_null($this->sslKey) ? [] : ['ssl_key' => [$this->sslKey, $this->sslKeyPassphrase]]
-        ));
+            ...$this->proxy === null ? [] : ['proxy' => $this->proxy],
+            ...$this->cert === null ? [] : ['cert' => [$this->cert, $this->certPassphrase]],
+            ...$this->sslKey === null ? [] : ['ssl_key' => [$this->sslKey, $this->sslKeyPassphrase]],
+        ];
     }
 
     protected function shouldBeRemovedFromQueue(): bool
@@ -168,7 +159,43 @@ class CallWebhookJob implements ShouldQueue
         return false;
     }
 
-    private function dispatchEvent(string $eventClass)
+    protected function addTimestampToHeaders(): void
+    {
+        $timestampHeader = config('webhook-server.timestamp_header_name');
+
+        $this->headers[$timestampHeader] = (string) now()->timestamp;
+    }
+
+    protected function isGetRequest(): bool
+    {
+        return strtoupper($this->httpVerb) === 'GET';
+    }
+
+    /**
+     * The body is attached through `withBody()`, which always sets a content type. Resolving it
+     * from the configured headers keeps a custom content type, such as the one you need when
+     * sending a raw XML body, from being overwritten with `application/json`.
+     */
+    protected function contentType(): string
+    {
+        foreach ($this->headers as $name => $value) {
+            if (strtolower($name) === 'content-type') {
+                return $value;
+            }
+        }
+
+        return 'application/json';
+    }
+
+    protected function generateBody(): string
+    {
+        return match ($this->outputType) {
+            'RAW' => $this->payload,
+            default => json_encode($this->payload, JSON_THROW_ON_ERROR),
+        };
+    }
+
+    private function dispatchEvent(string $eventClass): void
     {
         event(new $eventClass(
             $this->httpVerb,
@@ -186,21 +213,7 @@ class CallWebhookJob implements ShouldQueue
         ));
     }
 
-    private function generateBody(): string
-    {
-        return match ($this->outputType) {
-            "RAW" => $this->payload,
-            default => json_encode($this->payload),
-        };
-    }
-
-    protected function addTimestampToHeaders(): void
-    {
-        $timestampHeader = config('webhook-server.timestamp_header_name');
-        $this->headers[$timestampHeader] = now()->timestamp;
-    }
-
-    public function failed(Throwable $e)
+    public function failed(Throwable $e): void
     {
         if ($this->throwExceptionOnFailure) {
             throw $e;
