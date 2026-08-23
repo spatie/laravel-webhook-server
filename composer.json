@@ -20,7 +20,7 @@
     "require": {
         "php": "^8.0",
         "ext-json": "*",
-        "guzzlehttp/guzzle": "^6.3|^7.3",
+        "guzzlehttp/guzzle": "^6.3|^7.3|^8.0",
         "illuminate/bus": "^8.50|^9.0|^10.0|^11.0|^12.0|^13.0",
         "illuminate/queue": "^8.50|^9.0|^10.0|^11.0|^12.0|^13.0",
         "illuminate/support": "^8.50|^9.0|^10.0|^11.0|^12.0|^13.0",
