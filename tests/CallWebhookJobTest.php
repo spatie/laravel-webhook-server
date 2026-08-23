@@ -27,7 +27,7 @@ function baseWebhook(): WebhookCall
 function baseRequest(array $overrides = []): array
 {
     $defaultProperties = [
-        'method' => 'post',
+        'method' => 'POST',
         'url' => 'https://example.com/webhooks',
         'options' => [
             'timeout' => 3,
@@ -48,7 +48,7 @@ function baseRequest(array $overrides = []): array
 function baseGetRequest(array $overrides = []): array
 {
     $defaultProperties = [
-        'method' => 'get',
+        'method' => 'GET',
         'url' => 'https://example.com/webhooks',
         'options' => [
             'timeout' => 3,
@@ -107,7 +107,7 @@ it('can use a different HTTP verb', function () {
         ->useHttpVerb('put')
         ->dispatch();
 
-    $baseResponse = baseRequest(['method' => 'put']);
+    $baseResponse = baseRequest(['method' => 'PUT']);
 
     artisan('queue:work --once');
 
@@ -412,7 +412,7 @@ it('sets the timestamp header when using the timestamp option', function () {
 
     $timestampHeaderName = config('webhook-server.timestamp_header_name');
 
-    $baseRequest['options']['headers'][$timestampHeaderName] = TestTime::now()->getTimestamp();
+    $baseRequest['options']['headers'][$timestampHeaderName] = (string) TestTime::now()->getTimestamp();
 
     artisan('queue:work --once');
 

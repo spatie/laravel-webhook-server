@@ -99,7 +99,7 @@ class CallWebhookJob implements ShouldQueue
             return;
         } catch (Exception $exception) {
             if ($exception instanceof RequestException) {
-                $this->response = $exception->getResponse();
+                $this->response = $this->getResponseFromException($exception);
                 $this->errorType = get_class($exception);
                 $this->errorMessage = $exception->getMessage();
             }
@@ -147,7 +147,7 @@ class CallWebhookJob implements ShouldQueue
     {
         $client = $this->getClient();
 
-        return $client->request($this->httpVerb, $this->webhookUrl, array_merge(
+        return $client->request(strtoupper($this->httpVerb), $this->webhookUrl, array_merge(
             [
             'timeout' => $this->requestTimeout,
             'verify' => $this->verifySsl,
@@ -166,6 +166,16 @@ class CallWebhookJob implements ShouldQueue
     protected function shouldBeRemovedFromQueue(): bool
     {
         return false;
+    }
+
+    private function getResponseFromException(RequestException $exception): ?Response
+    {
+        // Guzzle 8 moved response access from RequestException to ResponseException.
+        if (! method_exists($exception, 'getResponse')) {
+            return null;
+        }
+
+        return $exception->getResponse();
     }
 
     private function dispatchEvent(string $eventClass)
@@ -197,7 +207,7 @@ class CallWebhookJob implements ShouldQueue
     protected function addTimestampToHeaders(): void
     {
         $timestampHeader = config('webhook-server.timestamp_header_name');
-        $this->headers[$timestampHeader] = now()->timestamp;
+        $this->headers[$timestampHeader] = (string) now()->timestamp;
     }
 
     public function failed(Throwable $e)

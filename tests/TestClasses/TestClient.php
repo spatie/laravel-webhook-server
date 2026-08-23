@@ -4,7 +4,7 @@ namespace Spatie\WebhookServer\Tests\TestClasses;
 
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\ServerException;
 use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
@@ -27,7 +27,7 @@ class TestClient implements ClientInterface
         $this->requests[] = compact('method', 'url', 'options');
 
         if ($this->throwRequestException) {
-            throw new RequestException(
+            throw new ServerException(
                 'Request failed exception',
                 new Request($method, $url),
                 new Response(500)

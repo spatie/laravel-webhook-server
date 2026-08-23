@@ -13,6 +13,7 @@ jobs:
       matrix:
         php: [8.5, 8.4, 8.3, 8.2, 8.1, 8.0]
         laravel: ['8.*', '9.*', '10.*', '11.*', '12.*', '13.*']
+        guzzle: ['7.*', '8.*']
         os: [ubuntu-latest]
         dependency-version: [prefer-stable]
         include:
@@ -57,8 +58,14 @@ jobs:
             php: 8.1
           - laravel: 13.*
             php: 8.0
+          - laravel: 8.*
+            guzzle: 8.*
+          - laravel: 11.*
+            guzzle: 8.*
+          - laravel: 12.*
+            guzzle: 8.*
 
-    name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.dependency-version }} - ${{ matrix.os }}
+    name: P${{ matrix.php }} - L${{ matrix.laravel }} - G${{ matrix.guzzle }} - ${{ matrix.dependency-version }} - ${{ matrix.os }}
 
     steps:
       - name: Checkout code
@@ -73,7 +80,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
+          composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" "guzzlehttp/guzzle:${{ matrix.guzzle }}" --no-interaction --no-update
           composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction --no-suggest
 
       - name: Execute tests
