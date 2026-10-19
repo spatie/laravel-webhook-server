@@ -42,6 +42,9 @@ class WebhookCall
             ->useHttpVerb($config['http_verb'])
             ->maximumTries($config['tries'])
             ->useBackoffStrategy($config['backoff_strategy'])
+            ->retryOn($config['retryable_status_codes'])
+            ->respectRetryAfter($config['respect_retry_after'])
+            ->withJitter($config['retry_with_jitter'])
             ->timeoutInSeconds($config['timeout_in_seconds'])
             ->signUsing($config['signer'])
             ->withHeaders($config['headers'])
@@ -121,6 +124,28 @@ class WebhookCall
     public function maximumTries(int $tries): self
     {
         $this->callWebhookJob->tries = $tries;
+
+        return $this;
+    }
+
+    /** @param list<int>|null $statusCodes */
+    public function retryOn(?array $statusCodes): self
+    {
+        $this->callWebhookJob->retryableStatusCodes = $statusCodes;
+
+        return $this;
+    }
+
+    public function respectRetryAfter(bool $respect = true): self
+    {
+        $this->callWebhookJob->respectRetryAfter = $respect;
+
+        return $this;
+    }
+
+    public function withJitter(bool $useJitter = true): self
+    {
+        $this->callWebhookJob->useRetryJitter = $useJitter;
 
         return $this;
     }

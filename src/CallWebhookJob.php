@@ -2,6 +2,8 @@
 
 namespace Spatie\WebhookServer;
 
+use DateTimeImmutable;
+use DateTimeZone;
 use Exception;
 use GuzzleHttp\TransferStats;
 use Illuminate\Bus\Queueable;
@@ -13,6 +15,7 @@ use Illuminate\Http\Client\Response;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
+use Random\Randomizer;
 use Spatie\WebhookServer\BackoffStrategy\BackoffStrategy;
 use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallEvent;
@@ -38,6 +41,13 @@ class CallWebhookJob implements ShouldQueue
     public string|array|null $proxy = null;
 
     public int $tries;
+
+    /** @var list<int>|null */
+    public ?array $retryableStatusCodes = null;
+
+    public bool $respectRetryAfter = false;
+
+    public bool $useRetryJitter = false;
 
     public int $requestTimeout;
 
@@ -120,18 +130,15 @@ class CallWebhookJob implements ShouldQueue
             $this->errorType = $exception::class;
             $this->errorMessage = $exception->getMessage();
 
-            if (! $lastAttempt) {
-                /** @var BackoffStrategy $backoffStrategy */
-                $backoffStrategy = app($this->backoffStrategyClass);
+            $stopRetrying = $lastAttempt || $this->shouldBeRemovedFromQueue() || ! $this->shouldRetryResponse();
 
-                $waitInSeconds = $backoffStrategy->waitInSecondsAfterAttempt($this->attempts());
-
-                $this->release($waitInSeconds);
+            if (! $stopRetrying) {
+                $this->release($this->retryDelayInSeconds());
             }
 
             $this->dispatchEvent(WebhookCallFailedEvent::class);
 
-            if ($lastAttempt || $this->shouldBeRemovedFromQueue()) {
+            if ($stopRetrying) {
                 $this->dispatchEvent(FinalWebhookCallFailedEvent::class);
 
                 $this->throwExceptionOnFailure ? $this->fail($exception) : $this->delete();
@@ -193,6 +200,82 @@ class CallWebhookJob implements ShouldQueue
     protected function shouldBeRemovedFromQueue(): bool
     {
         return false;
+    }
+
+    protected function shouldRetryResponse(): bool
+    {
+        if ($this->response === null) {
+            return true;
+        }
+
+        if ($this->retryableStatusCodes === null) {
+            return true;
+        }
+
+        return in_array($this->response->status(), $this->retryableStatusCodes, true);
+    }
+
+    protected function retryDelayInSeconds(): int
+    {
+        /** @var BackoffStrategy $backoffStrategy */
+        $backoffStrategy = app($this->backoffStrategyClass);
+
+        $delay = $backoffStrategy->waitInSecondsAfterAttempt($this->attempts());
+
+        if ($this->useRetryJitter) {
+            $delay = app(Randomizer::class)->getInt(0, $delay);
+        }
+
+        if ($this->respectRetryAfter) {
+            $delay = max($delay, $this->retryAfterInSeconds() ?? 0);
+        }
+
+        return $delay;
+    }
+
+    protected function retryAfterInSeconds(): ?int
+    {
+        $retryAfter = trim($this->response?->header('Retry-After') ?? '');
+
+        if (ctype_digit($retryAfter)) {
+            $seconds = filter_var(ltrim($retryAfter, '0') ?: '0', FILTER_VALIDATE_INT, [
+                'options' => ['min_range' => 0, 'max_range' => PHP_INT_MAX - now()->getTimestamp()],
+            ]);
+
+            return $seconds === false ? null : $seconds;
+        }
+
+        $obsoleteDate = false;
+
+        if (preg_match('/^([A-Za-z]+, \d{2}-[A-Za-z]{3}-)(\d{2})( \d{2}:\d{2}:\d{2} GMT)$/', $retryAfter, $matches)) {
+            $obsoleteDate = true;
+            $latestYear = (int) now()->format('Y') + 50;
+            $year = intdiv($latestYear, 100) * 100 + (int) $matches[2];
+            $year = $year > $latestYear ? $year - 100 : $year;
+            $retryAfter = "{$matches[1]}{$year}{$matches[3]}";
+        }
+
+        foreach (['!D, d M Y H:i:s \G\M\T', '!l, d-M-Y H:i:s \G\M\T', '!D M j H:i:s Y'] as $format) {
+            $date = DateTimeImmutable::createFromFormat($format, $retryAfter, new DateTimeZone('GMT'));
+
+            if ($date === false) {
+                continue;
+            }
+
+            if (DateTimeImmutable::getLastErrors() !== false) {
+                continue;
+            }
+
+            if ($obsoleteDate) {
+                if ($date->getTimestamp() > now()->addYears(50)->getTimestamp()) {
+                    $date = $date->modify('-100 years');
+                }
+            }
+
+            return max(0, $date->getTimestamp() - now()->getTimestamp());
+        }
+
+        return null;
     }
 
     protected function addTimestampToHeaders(): void

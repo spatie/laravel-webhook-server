@@ -74,6 +74,22 @@ return [
     'backoff_strategy' => ExponentialBackoffStrategy::class,
 
     /*
+     * Retry all unsuccessful HTTP statuses by default. Set an array to limit them.
+     * Connection failures are still retried.
+     */
+    'retryable_status_codes' => null,
+
+    /*
+     * Use the response's Retry-After header as a minimum retry delay.
+     */
+    'respect_retry_after' => false,
+
+    /*
+     * Randomize the backoff delay between zero and the strategy's delay.
+     */
+    'retry_with_jitter' => false,
+
+    /*
      * This class is used to dispatch webhooks onto the queue.
      */
     'webhook_job' => CallWebhookJob::class,
