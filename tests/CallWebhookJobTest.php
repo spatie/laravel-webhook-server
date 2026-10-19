@@ -466,3 +466,39 @@ it('sets the timestamp header when using the timestamp option', function () {
         fn (WebhookCallSucceededEvent $event) => $event->headers['Timestamp'] === $timestamp,
     );
 });
+
+it('allows configuring or disabling the delivery ID header', function (?string $header, bool $perCall) {
+    $this->fakeWebhookEndpoint();
+
+    if (! $perCall) {
+        config()->set('webhook-server.webhook_id_header_name', $header);
+    }
+
+    $webhook = baseWebhook()->uuid('delivery-42')->doNotSign();
+
+    if ($perCall) {
+        $webhook->withWebhookIdHeader($header);
+    }
+
+    $webhook->dispatch();
+
+    artisan('queue:work --once --sleep=0');
+
+    Http::assertSent(function (Request $request) use ($header) {
+        expect($request->hasHeader('Webhook-Id'))->toBeFalse();
+
+        if ($header !== null) {
+            expect($request->header($header))->toBe(['delivery-42']);
+        }
+
+        return true;
+    });
+})->with([null, 'X-Delivery-Id'])->with([true, false]);
+
+it('preserves an explicitly supplied delivery ID header regardless of casing', function () {
+    $this->fakeWebhookEndpoint();
+
+    baseWebhook()->withHeaders(['wEbHoOk-Id' => 'external-id'])->dispatchSync();
+
+    Http::assertSent(fn (Request $request) => $request->header('Webhook-Id') === ['external-id']);
+});

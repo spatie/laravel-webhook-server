@@ -46,6 +46,11 @@ return [
     'timestamp_header_name' => 'Timestamp',
 
     /*
+     * Send the webhook UUID in this header. Set to null to disable it.
+     */
+    'webhook_id_header_name' => 'Webhook-Id',
+
+    /*
      * These are the headers that will be added to all webhook requests.
      */
     'headers' => [

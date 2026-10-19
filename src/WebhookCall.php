@@ -26,6 +26,8 @@ class WebhookCall
     /** @var array<string, string|list<string>> */
     protected array $headers = [];
 
+    protected ?string $webhookIdHeaderName = 'Webhook-Id';
+
     /** @var array<array-key, mixed> */
     private array $payload = [];
 
@@ -46,6 +48,7 @@ class WebhookCall
             ->timeoutInSeconds($config['timeout_in_seconds'])
             ->signUsing($config['signer'])
             ->withHeaders($config['headers'])
+            ->withWebhookIdHeader($config['webhook_id_header_name'])
             ->withTags($config['tags'])
             ->verifySsl($config['verify_ssl'])
             ->throwExceptionOnFailure($config['throw_exception_on_failure'])
@@ -182,6 +185,13 @@ class WebhookCall
     public function withHeaders(array $headers): self
     {
         $this->headers = array_merge($this->headers, $headers);
+
+        return $this;
+    }
+
+    public function withWebhookIdHeader(?string $headerName): self
+    {
+        $this->webhookIdHeaderName = $headerName;
 
         return $this;
     }
@@ -325,6 +335,13 @@ class WebhookCall
     protected function getAllHeaders(): array
     {
         $headers = $this->headers;
+        $idHeader = $this->webhookIdHeaderName;
+
+        if ($idHeader !== null) {
+            if (! array_any(array_keys($headers), fn (string $name) => strcasecmp($name, $idHeader) === 0)) {
+                $headers[$idHeader] = $this->callWebhookJob->uuid;
+            }
+        }
 
         if (! $this->signWebhook) {
             return $headers;
