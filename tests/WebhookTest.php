@@ -9,7 +9,6 @@ use Spatie\WebhookServer\Exceptions\CouldNotCallWebhook;
 use Spatie\WebhookServer\Exceptions\InvalidBackoffStrategy;
 use Spatie\WebhookServer\Exceptions\InvalidSigner;
 use Spatie\WebhookServer\Exceptions\InvalidWebhookJob;
-
 use Spatie\WebhookServer\WebhookCall;
 
 beforeEach(function () {

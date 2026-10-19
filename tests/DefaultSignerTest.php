@@ -11,8 +11,7 @@ it('can calculate a signature for a given payload and secret', function () {
 });
 
 it('can return the name of the signature header', function () {
-    $signer = new DefaultSigner();
+    config()->set('webhook-server.signature_header_name', 'X-Custom-Signature');
 
-    expect($signer->signatureHeaderName())
-        ->toEqual(config('webhook-server.signature_header_name'));
+    expect(app(DefaultSigner::class)->signatureHeaderName())->toEqual('X-Custom-Signature');
 });

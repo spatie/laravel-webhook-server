@@ -1,20 +1,29 @@
 <?php
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\TransferStats;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\Psr7\Response;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Request;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
 use Mockery\MockInterface;
 use function Pest\Laravel\artisan;
 use function Pest\Laravel\mock;
+use Psr\Http\Message\RequestInterface;
 use Spatie\TestTime\TestTime;
 use Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy;
+use Spatie\WebhookServer\CallWebhookJob;
 use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
-
-use Spatie\WebhookServer\Tests\TestClasses\TestClient;
+use Spatie\WebhookServer\Events\WebhookCallSucceededEvent;
 use Spatie\WebhookServer\WebhookCall;
+
+beforeEach(function () {
+    Event::fake();
+});
 
 function baseWebhook(): WebhookCall
 {
@@ -24,236 +33,159 @@ function baseWebhook(): WebhookCall
         ->payload(['a' => 1]);
 }
 
-function baseRequest(array $overrides = []): array
-{
-    $defaultProperties = [
-        'method' => 'POST',
-        'url' => 'https://example.com/webhooks',
-        'options' => [
-            'timeout' => 3,
-            'body' => json_encode(['a' => 1]),
-            'verify' => true,
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'Signature' => '1f14a62b15ba5095326d6c75c3e2e6b462dd71e1c4b7fbdac0f32309adb7be5f',
-            ],
-            'on_stats' => function (TransferStats $stats) {
-            },
-        ],
-    ];
-
-    return array_merge($defaultProperties, $overrides);
-}
-
-function baseGetRequest(array $overrides = []): array
-{
-    $defaultProperties = [
-        'method' => 'GET',
-        'url' => 'https://example.com/webhooks',
-        'options' => [
-            'timeout' => 3,
-            'query' => ['a' => 1],
-            'verify' => true,
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'Signature' => '1f14a62b15ba5095326d6c75c3e2e6b462dd71e1c4b7fbdac0f32309adb7be5f',
-            ],
-            'on_stats' => function (TransferStats $stats) {
-            },
-        ],
-    ];
-
-    return array_merge($defaultProperties, $overrides);
-}
-
-beforeEach(function () {
-    Event::fake();
-
-    $this->testClient = new TestClient();
-
-    app()->bind(Client::class, function () {
-        return $this->testClient;
-    });
-});
-
 it('can make a webhook call', function () {
+    $this->fakeWebhookEndpoint();
+
     baseWebhook()->dispatch();
 
-    artisan('queue:work --once');
+    artisan('queue:work --once --sleep=0');
 
-    $this
-        ->testClient
-        ->assertRequestsMade([baseRequest()]);
-});
+    Http::assertSent(fn (Request $request) => $request->method() === 'POST'
+        && $request->url() === 'https://example.com/webhooks'
+        && $request->body() === json_encode(['a' => 1])
+        && $request->hasHeaders([
+            'Content-Type' => 'application/json',
+            'Signature' => '1f14a62b15ba5095326d6c75c3e2e6b462dd71e1c4b7fbdac0f32309adb7be5f',
+        ]));
 
-it('can make a legacy synchronous webhook call', function () {
-    baseWebhook()->dispatchSync();
-
-    $this
-        ->testClient
-        ->assertRequestsMade([baseRequest()]);
+    expect($this->sentOptions())->toMatchArray([
+        'timeout' => 3,
+        'verify' => true,
+        'cookies' => false,
+    ])->not->toHaveKey('connect_timeout')
+        ->not->toHaveKey('crypto_method');
 });
 
 it('can make a synchronous webhook call', function () {
+    $this->fakeWebhookEndpoint();
+
     baseWebhook()->dispatchSync();
 
-    $this
-        ->testClient
-        ->assertRequestsMade([baseRequest()]);
+    Http::assertSent(fn (Request $request) => $request->method() === 'POST'
+        && $request->url() === 'https://example.com/webhooks'
+        && $request->body() === json_encode(['a' => 1]));
 });
 
 it('can use a different HTTP verb', function () {
-    baseWebhook()
-        ->useHttpVerb('put')
-        ->dispatch();
+    $this->fakeWebhookEndpoint();
 
-    $baseResponse = baseRequest(['method' => 'PUT']);
+    baseWebhook()->useHttpVerb('put')->dispatch();
 
-    artisan('queue:work --once');
+    artisan('queue:work --once --sleep=0');
 
-    $this
-        ->testClient
-        ->assertRequestsMade([$baseResponse]);
+    Http::assertSent(fn (Request $request) => $request->method() === 'PUT');
 });
 
-it('uses query option when http verb is get', function () {
-    baseWebhook()
-        ->useHttpVerb('get')
-        ->dispatch();
+it('uses query parameters when the http verb is get', function () {
+    $this->fakeWebhookEndpoint();
 
-    $baseResponse = baseGetRequest();
+    baseWebhook()->useHttpVerb('get')->dispatch();
 
-    artisan('queue:work --once');
+    artisan('queue:work --once --sleep=0');
 
-    $this
-        ->testClient
-        ->assertRequestsMade([$baseResponse]);
+    Http::assertSent(fn (Request $request) => $request->method() === 'GET'
+        && $request->url() === 'https://example.com/webhooks?a=1'
+        && $request->body() === '');
 });
 
 it('can add extra headers', function () {
-    $extraHeaders = [
-        'Content-Type' => 'application/json',
-        'header1' => 'value1',
-        'headers2' => 'value2',
-    ];
+    $this->fakeWebhookEndpoint();
 
     baseWebhook()
-        ->withHeaders($extraHeaders)
+        ->withHeaders([
+            'header1' => 'value1',
+            'header2' => 'value2',
+        ])
         ->dispatch();
 
-    $baseRequest = baseRequest();
+    artisan('queue:work --once --sleep=0');
 
-    $baseRequest['options']['headers'] = array_merge(
-        $baseRequest['options']['headers'],
-        $extraHeaders
-    );
-
-    artisan('queue:work --once');
-
-    $this
-        ->testClient
-        ->assertRequestsMade([$baseRequest]);
+    Http::assertSent(fn (Request $request) => $request->hasHeaders([
+        'Content-Type' => 'application/json',
+        'Signature' => '1f14a62b15ba5095326d6c75c3e2e6b462dd71e1c4b7fbdac0f32309adb7be5f',
+        'header1' => 'value1',
+        'header2' => 'value2',
+    ]));
 });
 
 it('will not set a signature header when the request should not be signed', function () {
-    baseWebhook()
-        ->doNotSign()
-        ->dispatch();
+    $this->fakeWebhookEndpoint();
 
-    $baseRequest = baseRequest();
+    baseWebhook()->doNotSign()->dispatch();
 
-    unset($baseRequest['options']['headers']['Signature']);
+    artisan('queue:work --once --sleep=0');
 
-    artisan('queue:work --once');
-
-    $this
-        ->testClient
-        ->assertRequestsMade([$baseRequest]);
+    Http::assertSent(fn (Request $request) => ! $request->hasHeader('Signature'));
 });
 
 it('can disable verifying SSL', function () {
+    $this->fakeWebhookEndpoint();
+
     baseWebhook()->doNotVerifySsl()->dispatch();
 
-    $baseRequest = baseRequest();
-    $baseRequest['options']['verify'] = false;
+    artisan('queue:work --once --sleep=0');
 
-    artisan('queue:work --once');
-
-    $this
-        ->testClient
-        ->assertRequestsMade([$baseRequest]);
+    expect($this->sentOptions()['verify'])->toBeFalse();
 });
 
 it('will use mutual TLS without passphrases', function () {
-    baseWebhook()
-        ->mutualTls('foobar', 'barfoo')
-        ->dispatch();
+    $this->fakeWebhookEndpoint();
 
-    $baseRequest = baseRequest();
+    baseWebhook()->mutualTls('foobar', 'barfoo')->dispatch();
 
-    $baseRequest['options']['cert'] = ['foobar', null];
-    $baseRequest['options']['ssl_key'] = ['barfoo', null];
+    artisan('queue:work --once --sleep=0');
 
-    artisan('queue:work --once');
-
-    $this
-        ->testClient
-        ->assertRequestsMade([$baseRequest]);
+    expect($this->sentOptions())->toMatchArray([
+        'cert' => ['foobar', null],
+        'ssl_key' => ['barfoo', null],
+    ]);
 });
 
 it('will use mutual TLS with passphrases', function () {
+    $this->fakeWebhookEndpoint();
+
     baseWebhook()
         ->mutualTls('foobar', 'barfoo', 'foobarpassword', 'barfoopassword')
         ->dispatch();
 
-    $baseRequest = baseRequest();
+    artisan('queue:work --once --sleep=0');
 
-    $baseRequest['options']['cert'] = ['foobar', 'foobarpassword'];
-    $baseRequest['options']['ssl_key'] = ['barfoo', 'barfoopassword'];
-
-    artisan('queue:work --once');
-
-    $this
-        ->testClient
-        ->assertRequestsMade([$baseRequest]);
+    expect($this->sentOptions())->toMatchArray([
+        'cert' => ['foobar', 'foobarpassword'],
+        'ssl_key' => ['barfoo', 'barfoopassword'],
+    ]);
 });
 
-it('will use mutual TLS with certificate authority', function () {
+it('will use mutual TLS with a certificate authority', function () {
+    $this->fakeWebhookEndpoint();
+
     baseWebhook()
         ->mutualTls('foobar', 'barfoo')
         ->verifySsl('foofoo')
         ->dispatch();
 
-    $baseRequest = baseRequest();
+    artisan('queue:work --once --sleep=0');
 
-    $baseRequest['options']['cert'] = ['foobar', null];
-    $baseRequest['options']['ssl_key'] = ['barfoo', null];
-    $baseRequest['options']['verify'] = 'foofoo';
-
-    artisan('queue:work --once');
-
-    $this
-        ->testClient
-        ->assertRequestsMade([$baseRequest]);
+    expect($this->sentOptions())->toMatchArray([
+        'cert' => ['foobar', null],
+        'ssl_key' => ['barfoo', null],
+        'verify' => 'foofoo',
+    ]);
 });
 
 it('will use a proxy', function () {
-    baseWebhook()
-        ->useProxy('https://proxy.test')
-        ->dispatch();
+    $this->fakeWebhookEndpoint();
 
-    $baseRequest = baseRequest();
+    baseWebhook()->useProxy('https://proxy.test')->dispatch();
 
-    $baseRequest['options']['proxy'] = 'https://proxy.test';
+    artisan('queue:work --once --sleep=0');
 
-    artisan('queue:work --once');
-
-    $this
-        ->testClient
-        ->assertRequestsMade([$baseRequest]);
+    expect($this->sentOptions()['proxy'])->toBe('https://proxy.test');
 });
 
 it('will use a proxy array', function () {
+    $this->fakeWebhookEndpoint();
+
     baseWebhook()
         ->useProxy([
             'http' => 'http://proxy.test',
@@ -261,162 +193,265 @@ it('will use a proxy array', function () {
         ])
         ->dispatch();
 
-    $baseRequest = baseRequest();
+    artisan('queue:work --once --sleep=0');
 
-    $baseRequest['options']['proxy'] = [
+    expect($this->sentOptions()['proxy'])->toBe([
         'http' => 'http://proxy.test',
         'https' => 'https://proxy.test',
-    ];
-
-    artisan('queue:work --once');
-
-    $this
-        ->testClient
-        ->assertRequestsMade([$baseRequest]);
+    ]);
 });
 
-test('by default it will retry 3 times with the exponential backoff strategy', function () {
-    $this->testClient->letEveryRequestFail();
+it('passes the transfer stats to the events', function () {
+    $this->fakeWebhookEndpoint();
+
+    baseWebhook()->dispatch();
+
+    artisan('queue:work --once --sleep=0');
+
+    Event::assertDispatched(
+        WebhookCallSucceededEvent::class,
+        fn (WebhookCallSucceededEvent $event) => $event->transferStats?->getRequest()->getUri()->getHost() === 'example.com',
+    );
+});
+
+it('follows redirects without accepting cookies', function (int $status, string $method, string $body) {
+    Http::preventStrayRequests(false);
+    config()->set('webhook-server.webhook_job', RedirectTestWebhookJob::class);
+
+    app()->instance(MockHandler::class, new MockHandler([
+        new Response($status, [
+            'Location' => 'https://example.com/redirected',
+            'Set-Cookie' => 'session=unexpected; Path=/',
+        ]),
+        fn (RequestInterface $request) => new Response(200, [], json_encode([
+            'method' => $request->getMethod(),
+            'body' => (string) $request->getBody(),
+            'cookie' => $request->getHeaderLine('Cookie'),
+        ])),
+    ]));
+
+    baseWebhook()->maximumTries(1)->throwExceptionOnFailure()->dispatchSync();
+
+    Event::assertDispatched(WebhookCallSucceededEvent::class, function (WebhookCallSucceededEvent $event) use ($method, $body) {
+        expect($event->response?->json())->toBe([
+            'method' => $method,
+            'body' => $body,
+            'cookie' => '',
+        ])->and((string) $event->transferStats?->getEffectiveUri())->toBe('https://example.com/redirected');
+
+        return true;
+    });
+    Event::assertNotDispatched(WebhookCallFailedEvent::class);
+})->with([
+    [302, 'GET', ''],
+    [307, 'POST', '{"a":1}'],
+]);
+
+test('by default it will retry 3 times with the exponential backoff strategy', function (int $status) {
+    $this->fakeWebhookEndpoint(status: $status);
 
     baseWebhook()->dispatch();
 
     mock(ExponentialBackoffStrategy::class, function (MockInterface $mock) {
         $mock->shouldReceive('waitInSecondsAfterAttempt')->withArgs([1])->once()->andReturns(10);
         $mock->shouldReceive('waitInSecondsAfterAttempt')->withArgs([2])->once()->andReturns(100);
-        $mock->shouldReceive('waitInSecondsAfterAttempt')->withArgs([3])->never();
-
-        return $mock;
     });
 
-    artisan('queue:work --once');
+    artisan('queue:work --once --sleep=0');
     Event::assertDispatched(WebhookCallFailedEvent::class, 1);
 
     TestTime::addSeconds(9);
-    artisan('queue:work --once');
+    artisan('queue:work --once --sleep=0');
     Event::assertDispatched(WebhookCallFailedEvent::class, 1);
 
     TestTime::addSeconds(1);
-    artisan('queue:work --once');
+    artisan('queue:work --once --sleep=0');
     Event::assertDispatched(WebhookCallFailedEvent::class, 2);
 
     TestTime::addSeconds(100);
-    artisan('queue:work --once');
+    artisan('queue:work --once --sleep=0');
     Event::assertDispatched(WebhookCallFailedEvent::class, 3);
     Event::assertDispatched(FinalWebhookCallFailedEvent::class, 1);
-    $this->testClient->assertRequestCount(3);
+    Http::assertSentCount(3);
 
     TestTime::addSeconds(1000);
-    artisan('queue:work --once');
+    artisan('queue:work --once --sleep=0');
     Event::assertDispatched(WebhookCallFailedEvent::class, 3);
     Event::assertDispatched(FinalWebhookCallFailedEvent::class, 1);
-    $this->testClient->assertRequestCount(3);
-});
+    Http::assertSentCount(3);
+})->with([302, 422, 500]);
 
-it('sets the response field on request failure', function () {
-    $this->testClient->throwRequestException();
+it('only considers a 2xx response successful', function (int $status, bool $successful) {
+    $this->fakeWebhookEndpoint(status: $status);
+
+    baseWebhook()->maximumTries(1)->dispatch();
+
+    artisan('queue:work --once --sleep=0');
+
+    if ($successful) {
+        Event::assertDispatched(
+            WebhookCallSucceededEvent::class,
+            fn (WebhookCallSucceededEvent $event) => $event->response?->status() === $status,
+        );
+        Event::assertNotDispatched(WebhookCallFailedEvent::class);
+        Event::assertNotDispatched(FinalWebhookCallFailedEvent::class);
+
+        return;
+    }
+
+    Event::assertDispatched(
+        WebhookCallFailedEvent::class,
+        fn (WebhookCallFailedEvent $event) => $event->response?->status() === $status,
+    );
+    Event::assertDispatched(
+        FinalWebhookCallFailedEvent::class,
+        fn (FinalWebhookCallFailedEvent $event) => $event->response?->status() === $status,
+    );
+    Event::assertNotDispatched(WebhookCallSucceededEvent::class);
+})->with([
+    [200, true],
+    [204, true],
+    [299, true],
+    [300, false],
+    [302, false],
+    [304, false],
+    [399, false],
+    [400, false],
+    [500, false],
+]);
+
+it('sets the response and error fields when the remote app responds with an error', function (int $status) {
+    $this->fakeWebhookEndpoint(status: $status);
 
     baseWebhook()->dispatch();
 
-    artisan('queue:work --once');
-    Event::assertDispatched(WebhookCallFailedEvent::class, function (WebhookCallFailedEvent $event) {
-        $this->assertNotNull($event->response);
+    artisan('queue:work --once --sleep=0');
+
+    Event::assertDispatched(WebhookCallFailedEvent::class, function (WebhookCallFailedEvent $event) use ($status) {
+        expect($event->response?->status())->toBe($status)
+            ->and($event->errorType)->toBe(RequestException::class)
+            ->and($event->errorMessage)->toContain((string) $status);
 
         return true;
     });
-});
+})->with([422, 500]);
 
 it('sets the error fields on connection failure', function () {
-    $this->testClient->throwConnectionException();
+    Http::fake(['*' => Http::failedConnection()]);
 
     baseWebhook()->dispatch();
 
-    artisan('queue:work --once');
+    artisan('queue:work --once --sleep=0');
 
     Event::assertDispatched(WebhookCallFailedEvent::class, function (WebhookCallFailedEvent $event) {
-        expect($event->errorType)->not->toBeNull()
-            ->and($event->errorMessage)->not->toBeNull();
+        expect($event->response)->toBeNull()
+            ->and($event->errorType)->toBe(ConnectionException::class)
+            ->and($event->errorMessage)->not->toBeEmpty();
 
         return true;
     });
 });
 
-it('generate job failed event if an exception throws and throw exception on failure config is set', function () {
-    $this->testClient->throwConnectionException();
+it('generates a job failed event if an exception throws and throw exception on failure config is set', function () {
+    Http::fake(['*' => Http::failedConnection()]);
 
     baseWebhook()->maximumTries(1)->throwExceptionOnFailure()->dispatch();
 
-    artisan('queue:work --once');
+    artisan('queue:work --once --sleep=0');
 
     Event::assertDispatched(JobFailed::class, function (JobFailed $event) {
-        expect($event->exception)->toBeInstanceOf(ConnectException::class);
+        expect($event->exception)->toBeInstanceOf(ConnectionException::class);
 
         return true;
     });
 });
 
-it('send raw body data if rawBody is set', function () {
-    $testBody = "<xml>anotherOption</xml>";
+it('sends raw body data if rawBody is set', function () {
+    $this->fakeWebhookEndpoint();
+
     WebhookCall::create()
         ->url('https://example.com/webhooks')
-        ->useSecret('abc')
-        ->sendRawBody($testBody)
+        ->sendRawBody('<xml>anotherOption</xml>')
         ->doNotSign()
         ->dispatch();
 
-    $baseRequest = baseRequest();
+    artisan('queue:work --once --sleep=0');
 
-    $baseRequest['options']['body'] = $testBody;
-    unset($baseRequest['options']['headers']['Signature']);
-
-    artisan('queue:work --once');
-
-    $this
-        ->testClient
-        ->assertRequestsMade([$baseRequest]);
+    Http::assertSent(fn (Request $request) => $request->body() === '<xml>anotherOption</xml>');
 });
 
+it('preserves configured content type headers', function (array $headers) {
+    $this->fakeWebhookEndpoint();
 
-it('send raw body data in event if rawBody is set', function () {
-    $this->testClient->throwConnectionException();
+    config()->set('webhook-server.headers', $headers);
 
-    $testBody = "<xml>anotherOption</xml>";
     WebhookCall::create()
         ->url('https://example.com/webhooks')
-        ->useSecret('abc')
-        ->sendRawBody($testBody)
+        ->sendRawBody('<xml>anotherOption</xml>')
         ->doNotSign()
         ->dispatch();
 
-    $baseRequest = baseRequest();
+    artisan('queue:work --once --sleep=0');
 
-    $baseRequest['options']['body'] = $testBody;
-    unset($baseRequest['options']['headers']['Signature']);
+    Http::assertSent(function (Request $request) use ($headers) {
+        expect($request->body())->toBe('<xml>anotherOption</xml>');
 
-    artisan('queue:work --once');
+        if ($headers === []) {
+            expect($request->hasHeader('Content-Type'))->toBeFalse();
 
-    Event::assertDispatched(WebhookCallFailedEvent::class, function (WebhookCallFailedEvent $event) use ($testBody) {
-        expect($event->errorType)->not->toBeNull()
-            ->and($event->errorMessage)->not->toBeNull()
-            ->and($event->payload)->toBe($testBody);
+            return true;
+        }
+
+        expect($request->header('Content-Type'))->toBe(['application/xml']);
 
         return true;
     });
+    Event::assertDispatched(WebhookCallSucceededEvent::class);
+})->with([
+    'canonical' => [['Content-Type' => 'application/xml']],
+    'lowercase' => [['content-type' => 'application/xml']],
+    'array value' => [['cOnTeNt-TyPe' => ['application/xml']]],
+    'no content type' => [[]],
+]);
+
+it('sends raw body data in the event if rawBody is set', function () {
+    Http::fake(['*' => Http::failedConnection()]);
+
+    WebhookCall::create()
+        ->url('https://example.com/webhooks')
+        ->sendRawBody('<xml>anotherOption</xml>')
+        ->doNotSign()
+        ->dispatch();
+
+    artisan('queue:work --once --sleep=0');
+
+    Event::assertDispatched(
+        WebhookCallFailedEvent::class,
+        fn (WebhookCallFailedEvent $event) => $event->payload === '<xml>anotherOption</xml>',
+    );
 });
 
 it('sets the timestamp header when using the timestamp option', function () {
-    baseWebhook()
-        ->useTimestamp()
-        ->dispatch();
+    $this->fakeWebhookEndpoint();
 
-    $baseRequest = baseRequest();
+    baseWebhook()->useTimestamp()->dispatch();
 
-    $timestampHeaderName = config('webhook-server.timestamp_header_name');
+    artisan('queue:work --once --sleep=0');
 
-    $baseRequest['options']['headers'][$timestampHeaderName] = (string) TestTime::now()->getTimestamp();
+    $timestamp = (string) TestTime::now()->getTimestamp();
 
-    artisan('queue:work --once');
+    Http::assertSent(fn (Request $request) => $request->header('Timestamp') === [$timestamp]);
 
-    $this
-        ->testClient
-        ->assertRequestsMade([$baseRequest]);
+    Event::assertDispatched(
+        WebhookCallSucceededEvent::class,
+        fn (WebhookCallSucceededEvent $event) => $event->headers['Timestamp'] === $timestamp,
+    );
 });
+
+class RedirectTestWebhookJob extends CallWebhookJob
+{
+    protected function createRequest(): PendingRequest
+    {
+        return parent::createRequest()->setHandler(app(MockHandler::class));
+    }
+}
