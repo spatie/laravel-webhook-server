@@ -13,10 +13,10 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
 use Random\Randomizer;
 use Spatie\WebhookServer\BackoffStrategy\BackoffStrategy;
+use Spatie\WebhookServer\Concerns\SerializesWebhookData;
 use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallEvent;
 use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
@@ -31,7 +31,7 @@ class CallWebhookJob implements ShouldQueue
     use Dispatchable;
     use InteractsWithQueue;
     use Queueable;
-    use SerializesModels;
+    use SerializesWebhookData;
 
     public ?string $webhookUrl = null;
 

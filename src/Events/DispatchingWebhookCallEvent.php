@@ -2,8 +2,12 @@
 
 namespace Spatie\WebhookServer\Events;
 
+use Spatie\WebhookServer\Concerns\SerializesWebhookData;
+
 class DispatchingWebhookCallEvent
 {
+    use SerializesWebhookData;
+
     /**
      * @param string $httpVerb
      * @param string $webhookUrl
