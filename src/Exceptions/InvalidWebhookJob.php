@@ -2,10 +2,10 @@
 
 namespace Spatie\WebhookServer\Exceptions;
 
-use Exception;
+use LogicException;
 use Spatie\WebhookServer\CallWebhookJob;
 
-class InvalidWebhookJob extends Exception
+class InvalidWebhookJob extends LogicException
 {
     public static function doesNotExtendCallWebhookJob(string $invalidWebhookJobClass): self
     {
