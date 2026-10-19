@@ -12,6 +12,7 @@ use Spatie\WebhookServer\Exceptions\InvalidSigner;
 use Spatie\WebhookServer\Exceptions\InvalidWebhookJob;
 use Spatie\WebhookServer\Signer\Signer;
 
+/** @phpstan-consistent-constructor */
 class WebhookCall
 {
     protected CallWebhookJob $callWebhookJob;
@@ -22,8 +23,10 @@ class WebhookCall
 
     protected Signer $signer;
 
+    /** @var array<string, string|list<string>> */
     protected array $headers = [];
 
+    /** @var array<array-key, mixed> */
     private array $payload = [];
 
     private bool $signWebhook = true;
@@ -36,7 +39,7 @@ class WebhookCall
             ->useJob($config['webhook_job'])
             ->uuid(Str::uuid())
             ->onQueue($config['queue'])
-            ->onConnection($config['connection'] ?? null)
+            ->onConnection(config('webhook-server.connection'))
             ->useHttpVerb($config['http_verb'])
             ->maximumTries($config['tries'])
             ->useBackoffStrategy($config['backoff_strategy'])
@@ -60,6 +63,7 @@ class WebhookCall
         return $this;
     }
 
+    /** @param array<array-key, mixed> $payload */
     public function payload(array $payload): self
     {
         $this->payload = $payload;
@@ -133,6 +137,7 @@ class WebhookCall
         return $this;
     }
 
+    /** @param class-string<BackoffStrategy> $backoffStrategyClass */
     public function useBackoffStrategy(string $backoffStrategyClass): self
     {
         if (! is_subclass_of($backoffStrategyClass, BackoffStrategy::class)) {
@@ -151,13 +156,17 @@ class WebhookCall
         return $this;
     }
 
+    /** @param class-string<Signer> $signerClass */
     public function signUsing(string $signerClass): self
     {
         if (! is_subclass_of($signerClass, Signer::class)) {
             throw InvalidSigner::doesNotImplementSigner($signerClass);
         }
 
-        $this->signer = app($signerClass);
+        /** @var Signer $signer */
+        $signer = app($signerClass);
+
+        $this->signer = $signer;
 
         return $this;
     }
@@ -169,6 +178,7 @@ class WebhookCall
         return $this;
     }
 
+    /** @param array<string, string|list<string>> $headers */
     public function withHeaders(array $headers): self
     {
         $this->headers = array_merge($this->headers, $headers);
@@ -197,6 +207,7 @@ class WebhookCall
         return $this;
     }
 
+    /** @param array<string, string|list<string>>|string|null $proxy */
     public function useProxy(array|string|null $proxy = null): self
     {
         $this->callWebhookJob->proxy = $proxy;
@@ -204,6 +215,7 @@ class WebhookCall
         return $this;
     }
 
+    /** @param array<array-key, mixed> $meta */
     public function meta(array $meta): self
     {
         $this->callWebhookJob->meta = $meta;
@@ -211,6 +223,7 @@ class WebhookCall
         return $this;
     }
 
+    /** @param array<array-key, string> $tags */
     public function withTags(array $tags): self
     {
         $this->callWebhookJob->tags = $tags;
@@ -218,6 +231,7 @@ class WebhookCall
         return $this;
     }
 
+    /** @param class-string $webhookJobClass */
     public function useJob(string $webhookJobClass): self
     {
         $job = app($webhookJobClass);
@@ -244,7 +258,7 @@ class WebhookCall
 
         event(new DispatchingWebhookCallEvent(
             $this->callWebhookJob->httpVerb,
-            $this->callWebhookJob->webhookUrl,
+            $this->callWebhookJob->getWebhookUrl(),
             $this->callWebhookJob->payload,
             $this->callWebhookJob->headers,
             $this->callWebhookJob->meta,
@@ -255,7 +269,7 @@ class WebhookCall
         return dispatch($this->callWebhookJob);
     }
 
-    public function dispatchIf($condition): PendingDispatch|null
+    public function dispatchIf(mixed $condition): ?PendingDispatch
     {
         if ($condition) {
             return $this->dispatch();
@@ -264,7 +278,7 @@ class WebhookCall
         return null;
     }
 
-    public function dispatchUnless($condition): PendingDispatch|null
+    public function dispatchUnless(mixed $condition): ?PendingDispatch
     {
         return $this->dispatchIf(! $condition);
     }
@@ -276,14 +290,14 @@ class WebhookCall
         dispatch_sync($this->callWebhookJob);
     }
 
-    public function dispatchSyncIf($condition): void
+    public function dispatchSyncIf(mixed $condition): void
     {
         if ($condition) {
             $this->dispatchSync();
         }
     }
 
-    public function dispatchSyncUnless($condition): void
+    public function dispatchSyncUnless(mixed $condition): void
     {
         $this->dispatchSyncIf(! $condition);
     }
@@ -291,16 +305,14 @@ class WebhookCall
     public function sendRawBody(string $body): self
     {
         $this->callWebhookJob->payload = $body;
-        $this->callWebhookJob->outputType = "RAW";
+        $this->callWebhookJob->outputType = 'RAW';
 
         return $this;
     }
 
     protected function prepareForDispatch(): void
     {
-        if (! $this->callWebhookJob->webhookUrl) {
-            throw CouldNotCallWebhook::urlNotSet();
-        }
+        $this->callWebhookJob->getWebhookUrl();
 
         if ($this->signWebhook && empty($this->secret)) {
             throw CouldNotCallWebhook::secretNotSet();
@@ -309,6 +321,7 @@ class WebhookCall
         $this->callWebhookJob->headers = $this->getAllHeaders();
     }
 
+    /** @return array<string, string|list<string>> */
     protected function getAllHeaders(): array
     {
         $headers = $this->headers;
@@ -317,7 +330,7 @@ class WebhookCall
             return $headers;
         }
 
-        $signature = $this->signer->calculateSignature($this->callWebhookJob->webhookUrl, $this->payload, $this->secret);
+        $signature = $this->signer->calculateSignature($this->callWebhookJob->getWebhookUrl(), $this->payload, $this->secret);
 
         $headers[$this->signer->signatureHeaderName()] = $signature;
 

@@ -15,18 +15,26 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
 use Spatie\WebhookServer\BackoffStrategy\BackoffStrategy;
 use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
+use Spatie\WebhookServer\Events\WebhookCallEvent;
 use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallSucceededEvent;
+use Spatie\WebhookServer\Exceptions\CouldNotCallWebhook;
+use Spatie\WebhookServer\Signer\Signer;
 use Throwable;
+use UnexpectedValueException;
 
 class CallWebhookJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     public ?string $webhookUrl = null;
 
     public string $httpVerb;
 
+    /** @var string|array<string, string|list<string>>|null */
     public string|array|null $proxy = null;
 
     public int $tries;
@@ -41,10 +49,13 @@ class CallWebhookJob implements ShouldQueue
 
     public ?string $sslKeyPassphrase = null;
 
+    /** @var class-string<BackoffStrategy> */
     public string $backoffStrategyClass;
 
+    /** @var class-string<Signer>|null */
     public ?string $signerClass = null;
 
+    /** @var array<string, string|list<string>> */
     public array $headers = [];
 
     public string|bool $verifySsl;
@@ -56,10 +67,13 @@ class CallWebhookJob implements ShouldQueue
     /** @var string|null */
     public $queue = null;
 
+    /** @var array<array-key, mixed>|string */
     public array|string $payload = [];
 
+    /** @var array<array-key, mixed> */
     public array $meta = [];
 
+    /** @var array<array-key, string> */
     public array $tags = [];
 
     public string $uuid = '';
@@ -85,7 +99,7 @@ class CallWebhookJob implements ShouldQueue
 
             $this->response = $this->createRequest()->send(
                 strtoupper($this->httpVerb),
-                $this->webhookUrl,
+                $this->getWebhookUrl(),
                 $this->isGetRequest()
                     ? ['query' => $this->payload]
                     : ['body' => $this->generateBody()],
@@ -123,6 +137,7 @@ class CallWebhookJob implements ShouldQueue
         }
     }
 
+    /** @return array<array-key, string> */
     public function tags(): array
     {
         return $this->tags;
@@ -133,6 +148,15 @@ class CallWebhookJob implements ShouldQueue
         return $this->response;
     }
 
+    public function getWebhookUrl(): string
+    {
+        if (! $this->webhookUrl) {
+            throw CouldNotCallWebhook::urlNotSet();
+        }
+
+        return $this->webhookUrl;
+    }
+
     protected function createRequest(): PendingRequest
     {
         return Http::withHeaders($this->headers)
@@ -141,6 +165,7 @@ class CallWebhookJob implements ShouldQueue
             ->throw();
     }
 
+    /** @return array<string, mixed> */
     protected function requestOptions(): array
     {
         return [
@@ -177,17 +202,23 @@ class CallWebhookJob implements ShouldQueue
 
     protected function generateBody(): string
     {
-        return match ($this->outputType) {
-            'RAW' => $this->payload,
-            default => json_encode($this->payload, JSON_THROW_ON_ERROR),
-        };
+        if ($this->outputType !== 'RAW') {
+            return json_encode($this->payload, JSON_THROW_ON_ERROR);
+        }
+
+        if (! is_string($this->payload)) {
+            throw new UnexpectedValueException('The raw webhook payload must be a string.');
+        }
+
+        return $this->payload;
     }
 
+    /** @param class-string<WebhookCallEvent> $eventClass */
     private function dispatchEvent(string $eventClass): void
     {
         event(new $eventClass(
             $this->httpVerb,
-            $this->webhookUrl,
+            $this->getWebhookUrl(),
             $this->payload,
             $this->headers,
             $this->meta,
@@ -201,10 +232,10 @@ class CallWebhookJob implements ShouldQueue
         ));
     }
 
-    public function failed(Throwable $e): void
+    public function failed(Throwable $exception): void
     {
         if ($this->throwExceptionOnFailure) {
-            throw $e;
+            throw $exception;
         }
     }
 }

@@ -4,6 +4,7 @@ namespace Spatie\WebhookServer\Exceptions;
 
 use LogicException;
 
+/** @phpstan-consistent-constructor */
 class CouldNotCallWebhook extends LogicException
 {
     public static function urlNotSet(): self

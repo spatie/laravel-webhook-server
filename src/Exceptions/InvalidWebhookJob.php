@@ -5,6 +5,7 @@ namespace Spatie\WebhookServer\Exceptions;
 use LogicException;
 use Spatie\WebhookServer\CallWebhookJob;
 
+/** @phpstan-consistent-constructor */
 class InvalidWebhookJob extends LogicException
 {
     public static function doesNotExtendCallWebhookJob(string $invalidWebhookJobClass): self

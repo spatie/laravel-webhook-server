@@ -5,6 +5,7 @@ namespace Spatie\WebhookServer\Exceptions;
 use LogicException;
 use Spatie\WebhookServer\BackoffStrategy\BackoffStrategy;
 
+/** @phpstan-consistent-constructor */
 class InvalidBackoffStrategy extends LogicException
 {
     public static function doesNotExtendBackoffStrategy(string $invalidBackoffStrategyClass): self

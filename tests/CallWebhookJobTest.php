@@ -3,22 +3,24 @@
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Request;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Mockery\MockInterface;
+
 use function Pest\Laravel\artisan;
 use function Pest\Laravel\mock;
+
 use Psr\Http\Message\RequestInterface;
 use Spatie\TestTime\TestTime;
 use Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy;
-use Spatie\WebhookServer\CallWebhookJob;
 use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallSucceededEvent;
+use Spatie\WebhookServer\Tests\TestClasses\InvalidRawPayloadWebhookJob;
+use Spatie\WebhookServer\Tests\TestClasses\RedirectTestWebhookJob;
 use Spatie\WebhookServer\WebhookCall;
 
 beforeEach(function () {
@@ -380,6 +382,23 @@ it('sends raw body data if rawBody is set', function () {
     Http::assertSent(fn (Request $request) => $request->body() === '<xml>anotherOption</xml>');
 });
 
+it('reports an invalid raw payload through the webhook failure event', function () {
+    config()->set('webhook-server.webhook_job', InvalidRawPayloadWebhookJob::class);
+
+    baseWebhook()->maximumTries(1)->dispatch();
+
+    artisan('queue:work --once --sleep=0');
+
+    Event::assertDispatched(
+        FinalWebhookCallFailedEvent::class,
+        fn (FinalWebhookCallFailedEvent $event) => $event->errorType === UnexpectedValueException::class
+            && $event->errorMessage === 'The raw webhook payload must be a string.'
+            && $event->payload === ['a' => 1],
+    );
+    Event::assertNotDispatched(WebhookCallSucceededEvent::class);
+    Http::assertNothingSent();
+});
+
 it('preserves configured content type headers', function (array $headers) {
     $this->fakeWebhookEndpoint();
 
@@ -447,11 +466,3 @@ it('sets the timestamp header when using the timestamp option', function () {
         fn (WebhookCallSucceededEvent $event) => $event->headers['Timestamp'] === $timestamp,
     );
 });
-
-class RedirectTestWebhookJob extends CallWebhookJob
-{
-    protected function createRequest(): PendingRequest
-    {
-        return parent::createRequest()->setHandler(app(MockHandler::class));
-    }
-}

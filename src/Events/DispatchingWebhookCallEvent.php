@@ -4,6 +4,15 @@ namespace Spatie\WebhookServer\Events;
 
 class DispatchingWebhookCallEvent
 {
+    /**
+     * @param string $httpVerb
+     * @param string $webhookUrl
+     * @param array<array-key, mixed>|string $payload
+     * @param array<string, string|list<string>> $headers
+     * @param array<array-key, mixed> $meta
+     * @param array<array-key, string> $tags
+     * @param string $uuid
+     */
     public function __construct(
         public string $httpVerb,
         public string $webhookUrl,

@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
-use function PHPUnit\Framework\assertTrue;
 use Spatie\WebhookServer\CallWebhookJob;
 use Spatie\WebhookServer\Events\DispatchingWebhookCallEvent;
 use Spatie\WebhookServer\Exceptions\CouldNotCallWebhook;
@@ -46,9 +45,7 @@ it('can keep default config headers and set new ones', function () {
         ->useSecret('123')
         ->dispatch();
 
-    Queue::assertPushed(CallWebhookJob::class, function (CallWebhookJob $job) use ($url) {
-        $config = config('webhook-server');
-
+    Queue::assertPushed(CallWebhookJob::class, function (CallWebhookJob $job) {
         expect($job->headers)->toHaveKeys(['Content-Type', 'User-Agent']);
 
         return true;
@@ -63,9 +60,7 @@ it('can override default config headers', function () {
         ->useSecret('123')
         ->dispatch();
 
-    Queue::assertPushed(CallWebhookJob::class, function (CallWebhookJob $job) use ($url) {
-        $config = config('webhook-server');
-
+    Queue::assertPushed(CallWebhookJob::class, function (CallWebhookJob $job) {
         expect($job->headers)->toHaveKey('Content-Type');
         expect($job->headers['Content-Type'])->toEqual('text/plain');
 
@@ -81,8 +76,8 @@ it('can override default queue connection', function () {
         ->useSecret('123')
         ->dispatch();
 
-    Queue::assertPushed(CallWebhookJob::class, function (CallWebhookJob $job) use ($url) {
-        $this->assertEquals('foo', $job->connection);
+    Queue::assertPushed(CallWebhookJob::class, function (CallWebhookJob $job) {
+        expect($job->connection)->toBe('foo');
 
         return true;
     });
@@ -96,10 +91,23 @@ it('will throw an exception when no secret has been set', function () {
     WebhookCall::create()->url('https://localhost')->dispatch();
 })->throws(CouldNotCallWebhook::class);
 
+it('does not dispatch a signed webhook when the payload cannot be JSON encoded', function (array $payload) {
+    expect(fn () => WebhookCall::create()
+        ->url('https://example.com/webhooks')
+        ->useSecret('secret')
+        ->payload($payload)
+        ->dispatch())->toThrow(JsonException::class);
+
+    Queue::assertNothingPushed();
+})->with([
+    'invalid UTF-8' => [['text' => "\xB1\x31"]],
+    'non-finite number' => [['value' => INF]],
+]);
+
 it('will not throw an exception if there is not secret and the request should not be signed', function () {
     WebhookCall::create()->doNotSign()->url('https://localhost')->dispatch();
 
-    assertTrue(true);
+    Queue::assertPushed(CallWebhookJob::class);
 });
 
 it('will throw an exception when using an invalid backoff strategy', function () {
@@ -111,7 +119,7 @@ it('will throw and exception when using an invalid signer', function () {
 })->throws(InvalidSigner::class);
 
 it('will throw an exception when using an invalid webhook job', function () {
-    $invalidJob = new class {
+    $invalidJob = new class () {
     };
 
     WebhookCall::create()->useJob($invalidJob::class);
