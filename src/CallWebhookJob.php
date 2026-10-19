@@ -70,6 +70,8 @@ class CallWebhookJob implements ShouldQueue
     /** @var array<array-key, mixed>|string */
     public array|string $payload = [];
 
+    public ?string $preparedBody = null;
+
     /** @var array<array-key, mixed> */
     public array $meta = [];
 
@@ -102,7 +104,7 @@ class CallWebhookJob implements ShouldQueue
                 $this->getWebhookUrl(),
                 $this->isGetRequest()
                     ? ['query' => $this->payload]
-                    : ['body' => $this->generateBody()],
+                    : ['body' => $this->getBody()],
             );
 
             if (! $this->response->successful()) {
@@ -146,6 +148,11 @@ class CallWebhookJob implements ShouldQueue
     public function getResponse(): ?Response
     {
         return $this->response;
+    }
+
+    public function getBody(): string
+    {
+        return $this->preparedBody ??= $this->generateBody();
     }
 
     public function getWebhookUrl(): string

@@ -12,16 +12,9 @@ class DefaultSigner implements Signer
     ) {
     }
 
-    /**
-     * @param string $webhookUrl
-     * @param array<array-key, mixed> $payload
-     * @param string $secret
-     */
-    public function calculateSignature(string $webhookUrl, array $payload, string $secret): string
+    public function calculateSignature(string $webhookUrl, string $body, string $secret): string
     {
-        $payloadJson = json_encode($payload, JSON_THROW_ON_ERROR);
-
-        return hash_hmac('sha256', $payloadJson, $secret);
+        return hash_hmac('sha256', $body, $secret);
     }
 
     public function signatureHeaderName(): string

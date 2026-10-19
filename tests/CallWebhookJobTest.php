@@ -19,8 +19,11 @@ use Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy;
 use Spatie\WebhookServer\Events\FinalWebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallFailedEvent;
 use Spatie\WebhookServer\Events\WebhookCallSucceededEvent;
+use Spatie\WebhookServer\Tests\TestClasses\ChangingPayload;
 use Spatie\WebhookServer\Tests\TestClasses\InvalidRawPayloadWebhookJob;
+use Spatie\WebhookServer\Tests\TestClasses\PrettyJsonWebhookJob;
 use Spatie\WebhookServer\Tests\TestClasses\RedirectTestWebhookJob;
+use Spatie\WebhookServer\Tests\TestClasses\UrlAwareSigner;
 use Spatie\WebhookServer\WebhookCall;
 
 beforeEach(function () {
@@ -87,7 +90,20 @@ it('uses query parameters when the http verb is get', function () {
 
     Http::assertSent(fn (Request $request) => $request->method() === 'GET'
         && $request->url() === 'https://example.com/webhooks?a=1'
-        && $request->body() === '');
+        && $request->body() === ''
+        && $request->hasHeader('Signature', '1f14a62b15ba5095326d6c75c3e2e6b462dd71e1c4b7fbdac0f32309adb7be5f'));
+});
+
+it('does not JSON encode unsigned GET query parameters', function () {
+    $this->fakeWebhookEndpoint();
+
+    baseWebhook()->useHttpVerb('get')->doNotSign()->payload(['value' => INF])->dispatch();
+
+    artisan('queue:work --once --sleep=0');
+
+    Http::assertSent(fn (Request $request) => $request->url() === 'https://example.com/webhooks?value=INF'
+        && $request->body() === ''
+        && ! $request->hasHeader('Signature'));
 });
 
 it('can add extra headers', function () {
@@ -382,20 +398,62 @@ it('sends raw body data if rawBody is set', function () {
     Http::assertSent(fn (Request $request) => $request->body() === '<xml>anotherOption</xml>');
 });
 
-it('reports an invalid raw payload through the webhook failure event', function () {
-    config()->set('webhook-server.webhook_job', InvalidRawPayloadWebhookJob::class);
+it('signs raw request bodies without changing their bytes', function (string $body) {
+    $this->fakeWebhookEndpoint();
 
-    baseWebhook()->maximumTries(1)->dispatch();
+    baseWebhook()->sendRawBody($body)->dispatch();
 
     artisan('queue:work --once --sleep=0');
 
-    Event::assertDispatched(
-        FinalWebhookCallFailedEvent::class,
-        fn (FinalWebhookCallFailedEvent $event) => $event->errorType === UnexpectedValueException::class
-            && $event->errorMessage === 'The raw webhook payload must be a string.'
-            && $event->payload === ['a' => 1],
+    Http::assertSent(fn (Request $request) => $request->body() === $body
+        && $request->hasHeader('Signature', hash_hmac('sha256', $body, 'abc')));
+})->with(['', "<xml>café & data</xml>\n", ' { "value": 2 } ']);
+
+it('signs the exact serialized payload and keeps it unchanged across retries', function () {
+    Http::fakeSequence()->pushStatus(503)->pushStatus(200);
+
+    $webhook = baseWebhook()->payload(['entry' => new ChangingPayload()]);
+    $uuid = $webhook->getUuid();
+    $webhook->dispatch();
+
+    artisan('queue:work --once --sleep=0');
+    TestTime::addSeconds(10);
+    artisan('queue:work --once --sleep=0');
+
+    Http::assertSentCount(2);
+
+    foreach (Http::recorded() as [$request]) {
+        expect($request->body())->toBe('{"entry":{"value":1}}')
+            ->and($request->header('Signature'))->toBe([hash_hmac('sha256', '{"entry":{"value":1}}', 'abc')])
+            ->and($request->header('Webhook-Id'))->toBe([$uuid]);
+    }
+
+    Event::assertDispatched(WebhookCallSucceededEvent::class, fn (WebhookCallSucceededEvent $event) => $event->uuid === $uuid);
+});
+
+it('passes custom body serialization unchanged to custom signers and the HTTP client', function () {
+    $this->fakeWebhookEndpoint();
+    config()->set('webhook-server.webhook_job', PrettyJsonWebhookJob::class);
+
+    baseWebhook()->payload(['url' => 'https://example.com/café'])->signUsing(UrlAwareSigner::class)->dispatch();
+
+    artisan('queue:work --once --sleep=0');
+
+    $body = "{\n    \"url\": \"https://example.com/café\"\n}";
+
+    Http::assertSent(fn (Request $request) => $request->body() === $body
+        && $request->hasHeader('X-URL-Signature', hash_hmac('sha256', "https://example.com/webhooks\n{$body}", 'abc')));
+});
+
+it('rejects an invalid raw payload before dispatching', function () {
+    config()->set('webhook-server.webhook_job', InvalidRawPayloadWebhookJob::class);
+
+    expect(fn () => baseWebhook()->dispatch())->toThrow(
+        UnexpectedValueException::class,
+        'The raw webhook payload must be a string.',
     );
-    Event::assertNotDispatched(WebhookCallSucceededEvent::class);
+
+    Event::assertNothingDispatched();
     Http::assertNothingSent();
 });
 

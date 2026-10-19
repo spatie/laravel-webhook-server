@@ -91,18 +91,23 @@ it('will throw an exception when no secret has been set', function () {
     WebhookCall::create()->url('https://localhost')->dispatch();
 })->throws(CouldNotCallWebhook::class);
 
-it('does not dispatch a signed webhook when the payload cannot be JSON encoded', function (array $payload) {
-    expect(fn () => WebhookCall::create()
+it('does not dispatch a webhook when the payload cannot be JSON encoded', function (array $payload, bool $sign) {
+    $webhook = WebhookCall::create()
         ->url('https://example.com/webhooks')
         ->useSecret('secret')
-        ->payload($payload)
-        ->dispatch())->toThrow(JsonException::class);
+        ->payload($payload);
+
+    if (! $sign) {
+        $webhook->doNotSign();
+    }
+
+    expect(fn () => $webhook->dispatch())->toThrow(JsonException::class);
 
     Queue::assertNothingPushed();
 })->with([
     'invalid UTF-8' => [['text' => "\xB1\x31"]],
     'non-finite number' => [['value' => INF]],
-]);
+])->with([true, false]);
 
 it('will not throw an exception if there is not secret and the request should not be signed', function () {
     WebhookCall::create()->doNotSign()->url('https://localhost')->dispatch();

@@ -28,9 +28,6 @@ class WebhookCall
 
     protected ?string $webhookIdHeaderName = 'Webhook-Id';
 
-    /** @var array<array-key, mixed> */
-    private array $payload = [];
-
     private bool $signWebhook = true;
 
     public static function create(): self
@@ -69,8 +66,6 @@ class WebhookCall
     /** @param array<array-key, mixed> $payload */
     public function payload(array $payload): self
     {
-        $this->payload = $payload;
-
         $this->callWebhookJob->payload = $payload;
 
         return $this;
@@ -328,6 +323,12 @@ class WebhookCall
             throw CouldNotCallWebhook::secretNotSet();
         }
 
+        $this->callWebhookJob->preparedBody = null;
+
+        if (strtoupper($this->callWebhookJob->httpVerb) !== 'GET') {
+            $this->callWebhookJob->getBody();
+        }
+
         $this->callWebhookJob->headers = $this->getAllHeaders();
     }
 
@@ -347,7 +348,7 @@ class WebhookCall
             return $headers;
         }
 
-        $signature = $this->signer->calculateSignature($this->callWebhookJob->getWebhookUrl(), $this->payload, $this->secret);
+        $signature = $this->signer->calculateSignature($this->callWebhookJob->getWebhookUrl(), $this->callWebhookJob->getBody(), $this->secret);
 
         $headers[$this->signer->signatureHeaderName()] = $signature;
 
