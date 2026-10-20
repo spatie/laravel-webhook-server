@@ -19,6 +19,8 @@ This package allows you to configure and send webhooks in a Laravel app easily. 
 
 If you need to receive and process webhooks take a look at our [laravel-webhook-client](https://github.com/spatie/laravel-webhook-client) package.
 
+Read the [v4 documentation](https://spatie.be/docs/laravel-webhook-server/v4/introduction) and the [upgrading guide](https://spatie.be/docs/laravel-webhook-server/v4/upgrading).
+
 ## Support us
 
 [<img src="https://github-ads.s3.eu-central-1.amazonaws.com/laravel-webhook-server.jpg?t=1" width="419px" />](https://spatie.be/github-ad-click/laravel-webhook-server)
@@ -29,7 +31,7 @@ We highly appreciate you sending us a postcard from your hometown, mentioning wh
 
 ## Installation
 
-This package requires PHP 8.4 and Laravel 13. Use [v3](https://github.com/spatie/laravel-webhook-server/tree/3.10.0) if you are on an older version.
+This package requires PHP 8.4 and Laravel 13. Use [v3](https://github.com/spatie/laravel-webhook-server/tree/3.11.0) if you are on an older version.
 
 You can install the package via composer:
 
