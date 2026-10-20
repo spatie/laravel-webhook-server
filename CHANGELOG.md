@@ -2,6 +2,37 @@
 
 All notable changes to `laravel-webhook-server` will be documented in this file
 
+## 4.0.0 - 2026-10-20
+
+### Laravel Webhook Server v4
+
+Webhooks now use Laravel's HTTP client, so application tests can use `Http::fake()` without replacing the transport.
+
+#### New features
+
+- Sign the exact serialized body and reuse those bytes across retries, including raw string bodies and custom JSON encoding.
+- Send a stable, configurable `Webhook-Id` header for delivery deduplication.
+- Opt into selected retryable HTTP statuses, `Retry-After` minimum delays and full jitter.
+- Read HTTP responses and transfer statistics from queued event listeners, preserving binary request/response data and shared non-seekable stream snapshots.
+- Browse the new [v4 documentation](https://spatie.be/docs/laravel-webhook-server/v4/introduction).
+
+#### Upgrading from v3
+
+This is a major release. It requires PHP 8.4 and Laravel 13.
+
+The usual webhook builder API and standard JSON signatures are unchanged. Custom signers must accept the already serialized `string $body` instead of an array. Result events expose Laravel responses and exceptions rather than Guzzle equivalents, and custom transport/job extension points have changed. Invalid JSON bodies now throw before dispatch. The new delivery ID header is enabled by default and can be disabled; the retry options are opt-in.
+
+Drain old webhook and listener jobs before deployment and restart queue workers on v4. Read [UPGRADING.md](https://github.com/spatie/laravel-webhook-server/blob/4.0.0/UPGRADING.md) for all compatibility changes and queue/stream considerations.
+
+#### Development
+
+- Pest 5 and Testbench 11, tested on PHP 8.4/8.5 with Guzzle 7/8 and lowest/latest dependencies.
+- Larastan/PHPStan level 10 without a baseline and read-only formatting CI.
+
+Thanks to @alex543644 for the Laravel HTTP-client migration.
+
+**Full changelog:** https://github.com/spatie/laravel-webhook-server/compare/3.11.0...4.0.0
+
 ## 3.11.0 - 2026-08-23
 
 Guzzle 8 is now supported alongside Guzzle 6 and 7.
@@ -40,6 +71,7 @@ WebhookCall::create()
     ->useSecret('my-secret')
     ->payload(['key' => 'value'])
     ->dispatch();
+
 
 
 
