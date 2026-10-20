@@ -19,6 +19,8 @@ This package allows you to configure and send webhooks in a Laravel app easily. 
 
 If you need to receive and process webhooks take a look at our [laravel-webhook-client](https://github.com/spatie/laravel-webhook-client) package.
 
+Read the [v4 documentation](https://spatie.be/docs/laravel-webhook-server/v4/introduction) and the [upgrading guide](https://spatie.be/docs/laravel-webhook-server/v4/upgrading).
+
 ## Support us
 
 [<img src="https://github-ads.s3.eu-central-1.amazonaws.com/laravel-webhook-server.jpg?t=1" width="419px" />](https://spatie.be/github-ad-click/laravel-webhook-server)
@@ -28,6 +30,8 @@ We invest a lot of resources into creating [best in class open source packages](
 We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
 
 ## Installation
+
+This package requires PHP 8.4 and Laravel 13. Use [v3](https://github.com/spatie/laravel-webhook-server/tree/3.11.0) if you are on an older version.
 
 You can install the package via composer:
 
@@ -43,6 +47,10 @@ php artisan vendor:publish --provider="Spatie\WebhookServer\WebhookServerService
 This is the contents of the file that will be published at `config/webhook-server.php`:
 
 ```php
+use Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy;
+use Spatie\WebhookServer\CallWebhookJob;
+use Spatie\WebhookServer\Signer\DefaultSigner;
+
 return [
 
     /*
@@ -51,31 +59,50 @@ return [
     'queue' => 'default',
 
     /*
+     *  The default queue connection that should be used to send webhook requests.
+     */
+    'connection' => null,
+
+    /*
      * The default http verb to use.
      */
     'http_verb' => 'post',
+
+    /*
+     * Proxies to use for request.
+     *
+     * See https://docs.guzzlephp.org/en/stable/request-options.html#proxy
+     */
+    'proxy' => null,
 
     /*
      * This class is responsible for calculating the signature that will be added to
      * the headers of the webhook request. A webhook client can use the signature
      * to verify the request hasn't been tampered with.
      */
-    'signer' => \Spatie\WebhookServer\Signer\DefaultSigner::class,
+    'signer' => DefaultSigner::class,
 
     /*
      * This is the name of the header where the signature will be added.
      */
     'signature_header_name' => 'Signature',
-    
+
     /*
      * This is the name of the header where the timestamp will be added.
      */
     'timestamp_header_name' => 'Timestamp',
 
     /*
+     * Send the webhook UUID in this header. Set to null to disable it.
+     */
+    'webhook_id_header_name' => 'Webhook-Id',
+
+    /*
      * These are the headers that will be added to all webhook requests.
      */
-    'headers' => [],
+    'headers' => [
+        'Content-Type' => 'application/json',
+    ],
 
     /*
      * If a call to a webhook takes longer this amount of seconds
@@ -91,19 +118,35 @@ return [
     /*
      * This class determines how many seconds there should be between attempts.
      */
-    'backoff_strategy' => \Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy::class,
-        
+    'backoff_strategy' => ExponentialBackoffStrategy::class,
+
+    /*
+     * Retry all unsuccessful HTTP statuses by default. Set an array to limit them.
+     * Connection failures are still retried.
+     */
+    'retryable_status_codes' => null,
+
+    /*
+     * Use the response's Retry-After header as a minimum retry delay.
+     */
+    'respect_retry_after' => false,
+
+    /*
+     * Randomize the backoff delay between zero and the strategy's delay.
+     */
+    'retry_with_jitter' => false,
+
     /*
      * This class is used to dispatch webhooks onto the queue.
      */
-    'webhook_job' => \Spatie\WebhookServer\CallWebhookJob::class,
+    'webhook_job' => CallWebhookJob::class,
 
     /*
      * By default we will verify that the ssl certificate of the destination
      * of the webhook is valid.
      */
     'verify_ssl' => true,
-    
+
     /*
      * When set to true, an exception will be thrown when the last attempt fails
      */
@@ -174,13 +217,14 @@ When setting up, it's common to generate, store, and share a secret between your
 By default, the package will add a header called `Signature` that will contain a signature the receiving app can use if the payload hasn't been tampered with. This is how that signature is calculated:
 
 ```php
-// payload is the array passed to the `payload` method of the webhook
-// secret is the string given to the `signUsingSecret` method on the webhook.
-
-$payloadJson = json_encode($payload); 
-
-$signature = hash_hmac('sha256', $payloadJson, $secret);
+// $body contains the serialized request body.
+// $secret is the string given to useSecret().
+$signature = hash_hmac('sha256', $body, $secret);
 ```
+
+For JSON request bodies, the package encodes the payload with `json_encode($payload, JSON_THROW_ON_ERROR)` once, before dispatching. The signature is calculated over those exact bytes, and every attempt sends that same body. Raw bodies are signed without JSON encoding. Invalid JSON payloads throw `JsonException` before dispatching, even when signing is disabled.
+
+GET webhooks continue to send the payload as query parameters and sign its JSON representation, not an empty body. Unsigned GET query parameters are not JSON-encoded. HTTP middleware that changes the body after signing must also update the signature.
 
 ### Skip signing request
 
@@ -196,7 +240,7 @@ By calling this method, the `Signature` header will not be set.
 
 ### Customizing signing requests
 
-If you want to customize the signing process, you can create your own custom signer. A signer is any class that implements `Spatie\WebhookServer\Signer`.
+If you want to customize the signing process, you can create your own custom signer. A signer is any class that implements `Spatie\WebhookServer\Signer\Signer`.
 
 This is what that interface looks like.
 
@@ -207,7 +251,7 @@ interface Signer
 {
     public function signatureHeaderName(): string;
 
-    public function calculateSignature(array $payload, string $secret): string;
+    public function calculateSignature(string $webhookUrl, string $body, string $secret): string;
 }
 ```
 
@@ -224,9 +268,19 @@ WebhookCall::create()
 
 If you want to customize the name of the header, you don't need to use a custom signer, but you can change the value in the `signature_header_name` in the `webhook-server` config file.
 
+Custom signers receive the already serialized body. Do not JSON-encode it again. To customize JSON encoding or use canonical JSON, extend `CallWebhookJob`, override its protected `generateBody(): string` method and configure that class in `webhook_job`. The package will sign and send the result unchanged.
+
+### Delivery IDs
+
+Every webhook includes a `Webhook-Id` header containing its UUID. This ID stays the same across retries, so a receiver can use it to deduplicate deliveries. Set your own ID with `uuid('your-delivery-id')`.
+
+Use the `webhook_id_header_name` config key to rename the header or set it to `null` to disable it. For a single webhook, use `withWebhookIdHeader('X-Delivery-Id')` or `withWebhookIdHeader(null)`. An explicitly supplied header with that name takes precedence, regardless of casing.
+
+The default signature authenticates the body only, not the delivery ID or other headers. A delivery ID is not replay protection; authenticate the request and make processing idempotent on the receiver.
+
 ### Use Timestamp
 
-This is highly recommended to help prevent replay attacks.
+The timestamp indicates when an attempt was sent. The default signer does not include this header in the signature, so the header alone does not prevent replay attacks. For replay protection, include a timestamp in the signed payload and have the receiver validate its age.
 
 Timestamping is disabled by default, but you can enable it by calling `useTimestamp()` method.
 
@@ -261,7 +315,7 @@ WebhookCall::create()
     ->dispatch();
 ```
 
-To not hammer the remote app we'll wait some time between each attempt. By default, we wait 10 seconds between the first and second attempts, 100 seconds between the third and the fourth, 1000 between the fourth and the fifth, and so on. The maximum amount of seconds that we'll wait is 100 000, which is about 27 hours. This behavior is implemented in the default `ExponentialBackoffStrategy`.
+To not hammer the remote app we'll wait some time between each attempt. By default, we wait 10 seconds between the first and second attempts, 100 seconds between the second and third, 1000 between the third and fourth, and so on. The maximum amount of seconds that we'll wait is 100 000, which is about 27 hours. This behavior is implemented in the default `ExponentialBackoffStrategy`.
 
 You can define your own backoff strategy by creating a class that implements `Spatie\WebhookServer\BackoffStrategy\BackoffStrategy`. This is what that interface looks like:
 
@@ -284,6 +338,29 @@ WebhookCall::create()
 ```
 
 Under the hood, the retrying of the webhook calls is implemented using [delayed dispatching](https://laravel.com/docs/master/queues#delayed-dispatching). Amazon SQS only has support for a small maximum delay. If you're using Amazon SQS for your queues, make sure you do not configure the package in a way so there are more than 15 minutes between each attempt.
+
+#### Response-aware retries
+
+By default, every unsuccessful HTTP status is retried with the configured backoff strategy. You can limit retries to selected statuses, honor `Retry-After` and add full jitter:
+
+```php
+WebhookCall::create()
+    ->url('https://other-app.com/webhooks')
+    ->payload(['key' => 'value'])
+    ->useSecret('your-secret')
+    ->retryOn([408, 425, 429, 500, 502, 503, 504])
+    ->respectRetryAfter()
+    ->withJitter()
+    ->dispatch();
+```
+
+`retryOn(null)` restores retrying all unsuccessful statuses. `retryOn([])` disables HTTP-status retries; connection failures still retry. An excluded status immediately fires both `WebhookCallFailedEvent` and `FinalWebhookCallFailedEvent`, and honors `throwExceptionOnFailure()`.
+
+`respectRetryAfter()` accepts a non-negative number of seconds or an HTTP date. The header is a minimum: it never shortens the backoff delay. Invalid values are ignored, and past dates add no extra delay.
+
+`withJitter()` chooses a random delay between zero and your backoff strategy's delay, inclusive. When combined with `respectRetryAfter()`, that random delay is increased if needed to meet the receiver's minimum. Both options can be disabled per call by passing `false`. Set `retryable_status_codes`, `respect_retry_after` and `retry_with_jitter` in the config file to change the defaults. The `BackoffStrategy` interface is unchanged.
+
+Ensure the resulting delay, including any `Retry-After` value, fits your queue driver's limits. These options affect queued retries, not immediate in-process HTTP retries; synchronous calls do not wait or loop.
 
 ### Customizing the HTTP verb
 
@@ -325,9 +402,7 @@ WebhookCall::create()
 ### Using mutual TLS authentication
 
 To safeguard the integrity of webhook data transmission, it's critical to authenticate the intended recipient of your webhook payload. 
-Mutual TLS authentication serves as a robust method for this purpose. Contrary to standard TLS, where only the client verifies the server, 
-mutual TLS requires both the webhook endpoint (acting as the client) and the webhook provider (acting as the server) to authenticate each other. 
-This is achieved through an exchange of certificates during the TLS handshake, ensuring that both parties confirm each other's identity.
+Mutual TLS authenticates both parties. Your application verifies the receiving endpoint's server certificate, and the receiving endpoint verifies your application's client certificate during the TLS handshake.
 
 > Note: If you need to include your own certificate authority, pass the certificate path to the `verifySsl()` method.
 
@@ -401,13 +476,13 @@ or activate the `throw_exception_on_failure` global option of the `webhook-serve
 
 By default, all webhooks will transform the payload into JSON. Instead of sending JSON, you can send any string by using the `sendRawBody(string $body)` option instead.
 
-Due to a type mismatch in the Signer API, it is currently not supported to sign raw data requests.
-When using the _sendRawBody_ option, you will receive a _string_ payload in the WebhookEvents.
+Raw bodies can be signed just like JSON payloads. When using `sendRawBody`, you will receive a string payload in the webhook events. Set a matching Content-Type header for the receiver.
 ```php
 WebhookCall::create()
-    ->sendRawBody("<root>someXMLContent</root>")
-    ->doNotSign()
-    ...
+    ->url('https://other-app.com/webhooks')
+    ->sendRawBody('<root>someXMLContent</root>')
+    ->withHeaders(['Content-Type' => 'application/xml'])
+    ->useSecret('your-secret')
     ->dispatch();
 ```
 
@@ -432,13 +507,28 @@ All these events have these properties:
 Except for the `DispatchingWebhookCallEvent`, all events have these additional properties:
 
 - `attempt`: the attempt number
-- `response`: the response returned by the remote app. Can be an instance of `\GuzzleHttp\Psr7\Response` or `null`.
+- `response`: the response returned by the remote app. Can be an instance of `\Illuminate\Http\Client\Response` or `null`.
+- `errorType`: the class name of the exception that made the attempt fail, or `null` when the attempt succeeded
+- `errorMessage`: the message of that exception, or `null` when the attempt succeeded
+- `transferStats`: an instance of `\GuzzleHttp\TransferStats` holding the timings of the request, or `null`
+
+Listeners may implement Laravel's `ShouldQueue` interface. HTTP response bodies, status codes, header arrays, cookies and transfer statistics survive queue serialization, including the request and response in `transferStats`. The listener still receives an `Illuminate\Http\Client\Response` and a `GuzzleHttp\TransferStats`; no separate result API is needed.
+
+Webhook jobs and events use base64 encoding to preserve binary raw/custom bodies, headers, metadata and error messages through Laravel's JSON queue payloads. This increases message sizes and is not encryption: account for your queue's limits and protect access to sensitive data. Custom metadata, cookie jars and handler data must still be serializable. Custom response subclasses and their additional runtime state are not preserved.
+
+Non-seekable body streams are read once and cached while the original stream exists, so shared response/statistics snapshots and repeated serialization retain identical bytes. The first snapshot consumes the original non-seekable stream; buffer or replace it before dispatching events if synchronous listeners also need to read it. Bytes already consumed by middleware cannot be recovered. Seekable streams retain their original positions.
 
 ## Testing
 
 ``` bash
 composer test
+composer analyse
+composer format-test
 ```
+
+Static analysis checks the source code and configuration with Larastan and PHPStan at level 10, without a baseline. CI runs tests and static analysis on PHP 8.4 and 8.5, and checks formatting on PHP 8.4.
+
+To apply the package's formatting rules, run `composer format`.
 
 ## Testing Webhooks
 When using the package in automated tests, you'll want to perform one of the following to ensure that no webhooks are sent out to genuine websites
@@ -477,6 +567,27 @@ class TestFile extends TestCase
         ... Perform webhook call ...
 
         Queue::assertPushed(CallWebhookJob::class);
+    }
+}
+```
+
+### Http
+Because webhooks are sent with Laravel's HTTP client, you can also let the job run and assert on the request it made.
+
+```php 
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
+use Tests\TestCase;
+
+class TestFile extends TestCase
+{
+    public function testWebhookIsSent()
+    {
+        Http::fake();
+
+        ... Perform webhook call ...
+
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://other-app.com/webhooks');
     }
 }
 ```

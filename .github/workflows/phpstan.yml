@@ -1,0 +1,33 @@
+name: Static analysis
+
+on: [push, pull_request]
+
+permissions:
+    contents: read
+
+jobs:
+    analyse:
+        runs-on: ubuntu-latest
+
+        strategy:
+            matrix:
+                php: ['8.4', '8.5']
+
+        name: PHPStan - PHP ${{ matrix.php }}
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v5
+
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: ${{ matrix.php }}
+                  extensions: curl, dom, mbstring, pdo_sqlite
+                  coverage: none
+
+            - name: Install dependencies
+              run: composer update --prefer-dist --no-interaction
+
+            - name: Analyse
+              run: composer analyse

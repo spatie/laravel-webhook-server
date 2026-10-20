@@ -1,0 +1,15 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - vendor/nesbot/carbon/extension.neon
+
+parameters:
+    level: 10
+    phpVersion: 80400
+
+    paths:
+        - src
+        - config
+
+    checkConfigTypes: true
+    configDirectories:
+        - config

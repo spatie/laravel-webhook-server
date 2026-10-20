@@ -1,5 +1,9 @@
 <?php
 
+use Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy;
+use Spatie\WebhookServer\CallWebhookJob;
+use Spatie\WebhookServer\Signer\DefaultSigner;
+
 return [
 
     /*
@@ -29,7 +33,7 @@ return [
      * the headers of the webhook request. A webhook client can use the signature
      * to verify the request hasn't been tampered with.
      */
-    'signer' => \Spatie\WebhookServer\Signer\DefaultSigner::class,
+    'signer' => DefaultSigner::class,
 
     /*
      * This is the name of the header where the signature will be added.
@@ -40,6 +44,11 @@ return [
      * This is the name of the header where the timestamp will be added.
      */
     'timestamp_header_name' => 'Timestamp',
+
+    /*
+     * Send the webhook UUID in this header. Set to null to disable it.
+     */
+    'webhook_id_header_name' => 'Webhook-Id',
 
     /*
      * These are the headers that will be added to all webhook requests.
@@ -62,12 +71,28 @@ return [
     /*
      * This class determines how many seconds there should be between attempts.
      */
-    'backoff_strategy' => \Spatie\WebhookServer\BackoffStrategy\ExponentialBackoffStrategy::class,
+    'backoff_strategy' => ExponentialBackoffStrategy::class,
+
+    /*
+     * Retry all unsuccessful HTTP statuses by default. Set an array to limit them.
+     * Connection failures are still retried.
+     */
+    'retryable_status_codes' => null,
+
+    /*
+     * Use the response's Retry-After header as a minimum retry delay.
+     */
+    'respect_retry_after' => false,
+
+    /*
+     * Randomize the backoff delay between zero and the strategy's delay.
+     */
+    'retry_with_jitter' => false,
 
     /*
      * This class is used to dispatch webhooks onto the queue.
      */
-    'webhook_job' => \Spatie\WebhookServer\CallWebhookJob::class,
+    'webhook_job' => CallWebhookJob::class,
 
     /*
      * By default we will verify that the ssl certificate of the destination

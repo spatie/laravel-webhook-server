@@ -2,10 +2,11 @@
 
 namespace Spatie\WebhookServer\Exceptions;
 
-use Exception;
+use LogicException;
 use Spatie\WebhookServer\Signer\Signer;
 
-class InvalidSigner extends Exception
+/** @phpstan-consistent-constructor */
+class InvalidSigner extends LogicException
 {
     public static function doesNotImplementSigner(string $invalidClassName): self
     {

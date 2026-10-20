@@ -1,3 +1,5 @@
 <?php
 
-uses(Spatie\WebhookServer\Tests\TestCase::class)->in('.');
+use Spatie\WebhookServer\Tests\TestCase;
+
+uses(TestCase::class)->in('.');

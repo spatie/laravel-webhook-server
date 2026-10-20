@@ -18,19 +18,23 @@
         }
     ],
     "require": {
-        "php": "^8.0",
+        "php": "^8.4",
         "ext-json": "*",
-        "guzzlehttp/guzzle": "^6.3|^7.3|^8.0",
-        "illuminate/bus": "^8.50|^9.0|^10.0|^11.0|^12.0|^13.0",
-        "illuminate/queue": "^8.50|^9.0|^10.0|^11.0|^12.0|^13.0",
-        "illuminate/support": "^8.50|^9.0|^10.0|^11.0|^12.0|^13.0",
+        "guzzlehttp/guzzle": "^7.8.2|^8.0",
+        "illuminate/bus": "^13.0",
+        "illuminate/http": "^13.0",
+        "illuminate/queue": "^13.0",
+        "illuminate/support": "^13.0",
         "spatie/laravel-package-tools": "^1.11"
     },
     "require-dev": {
-        "mockery/mockery": "^1.4.3",
-        "orchestra/testbench": "^6.19|^7.0|^8.0|^10.0|^11.0",
-        "pestphp/pest": "^1.22|^2.0|^3.0|^4.0",
-        "pestphp/pest-plugin-laravel": "^1.3|^2.0|^3.0|^4.0",
+        "friendsofphp/php-cs-fixer": "^3.95",
+        "larastan/larastan": "^3.13",
+        "mockery/mockery": "^1.6.10",
+        "orchestra/testbench": "^11.0",
+        "pestphp/pest": "^5.0",
+        "pestphp/pest-plugin-laravel": "^5.0",
+        "phpstan/phpstan": "^2.3",
         "spatie/test-time": "^1.2.2"
     },
     "autoload": {
@@ -44,8 +48,11 @@
         }
     },
     "scripts": {
-        "test": "vendor/bin/pest",
-        "test-coverage": "vendor/bin/pest"
+        "analyse": "@php vendor/bin/phpstan analyse --memory-limit=512M",
+        "format": "@php vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php --allow-risky=yes",
+        "format-test": "@format --dry-run --diff",
+        "test": "@php vendor/bin/pest",
+        "test-coverage": "@php vendor/bin/pest"
     },
     "config": {
         "sort-packages": true,

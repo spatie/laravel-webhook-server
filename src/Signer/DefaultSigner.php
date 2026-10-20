@@ -2,17 +2,23 @@
 
 namespace Spatie\WebhookServer\Signer;
 
+use Illuminate\Container\Attributes\Config;
+
 class DefaultSigner implements Signer
 {
-    public function calculateSignature(string $webhookUrl, array $payload, string $secret): string
-    {
-        $payloadJson = json_encode($payload);
+    public function __construct(
+        #[Config('webhook-server.signature_header_name')]
+        protected string $signatureHeaderName = 'Signature',
+    ) {
+    }
 
-        return hash_hmac('sha256', $payloadJson, $secret);
+    public function calculateSignature(string $webhookUrl, string $body, string $secret): string
+    {
+        return hash_hmac('sha256', $body, $secret);
     }
 
     public function signatureHeaderName(): string
     {
-        return config('webhook-server.signature_header_name');
+        return $this->signatureHeaderName;
     }
 }
