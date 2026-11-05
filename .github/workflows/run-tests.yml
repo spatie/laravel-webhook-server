@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [8.5, 8.4]
+        php: [8.6, 8.5, 8.4]
         laravel: ['13.*']
         guzzle: ['7.*', '8.*']
         os: [ubuntu-latest]
